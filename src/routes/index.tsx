@@ -241,16 +241,20 @@ function MatchCard({ match }: { match: Match }) {
         </div>
       </div>
 
-      <button
-        type="button"
+      <a
+        href={`https://www.youtube.com/results?search_query=${encodeURIComponent(
+          `${match.teamA.name} vs ${match.teamB.name} ${finished ? "résumé highlights" : "Coupe du Monde"}`
+        )}`}
+        target="_blank"
+        rel="noopener noreferrer"
         className="relative grid w-24 shrink-0 place-items-center overflow-hidden rounded-lg bg-gradient-to-br from-[#1a73e8] to-[#174ea6] text-white transition group-hover:brightness-110 sm:w-32"
-        aria-label="Résumé du match"
+        aria-label={`Voir le résumé : ${match.teamA.name} contre ${match.teamB.name}`}
       >
         <Play size={22} className="drop-shadow" fill="white" />
         <span className="absolute bottom-1 right-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-medium">
           {match.duration}
         </span>
-      </button>
+      </a>
     </article>
   );
 }
