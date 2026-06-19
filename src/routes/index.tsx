@@ -172,7 +172,15 @@ function MatchCard({ match }: { match: Match }) {
 function TeamRow({ team, won, finished }: { team: Match["teamA"]; won: boolean; finished: boolean }) {
   return (
     <div className="flex items-center gap-3 py-1">
-      <span className="text-xl leading-none" aria-hidden>{team.flag}</span>
+      <img
+        src={`https://flagcdn.com/w40/${team.flag}.png`}
+        srcSet={`https://flagcdn.com/w80/${team.flag}.png 2x`}
+        width={24}
+        height={18}
+        alt=""
+        loading="lazy"
+        className="h-[18px] w-6 shrink-0 rounded-sm object-cover ring-1 ring-black/5"
+      />
       <span className={`flex-1 min-w-0 truncate text-sm ${won ? "font-semibold" : "font-normal"} text-[#202124]`}>
         {team.name}
       </span>
