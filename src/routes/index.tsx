@@ -28,38 +28,38 @@ type Match = {
 const MATCHES: Match[] = [
   {
     id: "1", group: "Groupe B", day: "today", status: "finished", duration: "2:14",
-    teamA: { name: "Canada", flag: "🇨🇦", score: 6 },
-    teamB: { name: "Qatar", flag: "🇶🇦", score: 0, redCard: true },
+    teamA: { name: "Canada", flag: "ca", score: 6 },
+    teamB: { name: "Qatar", flag: "qa", score: 0, redCard: true },
   },
   {
     id: "2", group: "Groupe A", day: "today", status: "finished", duration: "1:48",
-    teamA: { name: "Mexique", flag: "🇲🇽", score: 1 },
-    teamB: { name: "Corée du Sud", flag: "🇰🇷", score: 0 },
+    teamA: { name: "Mexique", flag: "mx", score: 1 },
+    teamB: { name: "Corée du Sud", flag: "kr", score: 0 },
   },
   {
     id: "3", group: "Groupe D", day: "today", status: "scheduled", time: "21:00", duration: "0:32",
-    teamA: { name: "USA", flag: "🇺🇸" },
-    teamB: { name: "Australie", flag: "🇦🇺" },
+    teamA: { name: "USA", flag: "us" },
+    teamB: { name: "Australie", flag: "au" },
   },
   {
     id: "4", group: "Groupe C", day: "tomorrow", status: "scheduled", time: "00:00", duration: "0:28",
-    teamA: { name: "Écosse", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿" },
-    teamB: { name: "Maroc", flag: "🇲🇦" },
+    teamA: { name: "Écosse", flag: "gb-sct" },
+    teamB: { name: "Maroc", flag: "ma" },
   },
   {
     id: "5", group: "Groupe C", day: "tomorrow", status: "scheduled", time: "02:30", duration: "0:45",
-    teamA: { name: "Brésil", flag: "🇧🇷" },
-    teamB: { name: "Haïti", flag: "🇭🇹" },
+    teamA: { name: "Brésil", flag: "br" },
+    teamB: { name: "Haïti", flag: "ht" },
   },
   {
     id: "6", group: "Groupe D", day: "tomorrow", status: "scheduled", time: "05:00", duration: "0:30",
-    teamA: { name: "Turquie", flag: "🇹🇷" },
-    teamB: { name: "Tunisie", flag: "🇹🇳" },
+    teamA: { name: "Turquie", flag: "tr" },
+    teamB: { name: "Tunisie", flag: "tn" },
   },
   {
     id: "7", group: "Groupe F", day: "tomorrow", status: "scheduled", time: "19:00", duration: "0:36",
-    teamA: { name: "Pays-Bas", flag: "🇳🇱" },
-    teamB: { name: "Sénégal", flag: "🇸🇳" },
+    teamA: { name: "Pays-Bas", flag: "nl" },
+    teamB: { name: "Sénégal", flag: "sn" },
   },
 ];
 
@@ -172,7 +172,15 @@ function MatchCard({ match }: { match: Match }) {
 function TeamRow({ team, won, finished }: { team: Match["teamA"]; won: boolean; finished: boolean }) {
   return (
     <div className="flex items-center gap-3 py-1">
-      <span className="text-xl leading-none" aria-hidden>{team.flag}</span>
+      <img
+        src={`https://flagcdn.com/w40/${team.flag}.png`}
+        srcSet={`https://flagcdn.com/w80/${team.flag}.png 2x`}
+        width={24}
+        height={18}
+        alt=""
+        loading="lazy"
+        className="h-[18px] w-6 shrink-0 rounded-sm object-cover ring-1 ring-black/5"
+      />
       <span className={`flex-1 min-w-0 truncate text-sm ${won ? "font-semibold" : "font-normal"} text-[#202124]`}>
         {team.name}
       </span>
