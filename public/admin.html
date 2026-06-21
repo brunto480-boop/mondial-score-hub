@@ -165,7 +165,7 @@
           <div class="border-t border-gray-200 pt-3 grid grid-cols-3 gap-2">
             <div>
               <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5" for="day">Jour</label>
-              <select id="day" required class="w-full bg-white border border-gray-300 rounded-lg px-2 py-2 text-xs text-[#202124] focus:outline-none focus:border-blue-500">
+              <select id="day" onchange="handleDayChange()" required class="w-full bg-white border border-gray-300 rounded-lg px-2 py-2 text-xs text-[#202124] focus:outline-none focus:border-blue-500">
                 <option value="yesterday">Hier</option>
                 <option value="today" selected>Aujourd'hui</option>
                 <option value="tomorrow">Demain</option>
@@ -174,7 +174,7 @@
             </div>
             <div>
               <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5" for="match-date-input">Date</label>
-              <input id="match-date-input" type="date" class="w-full bg-white border border-gray-300 rounded-lg px-2 py-2 text-xs text-[#202124] focus:outline-none focus:border-blue-500">
+              <input id="match-date-input" onchange="handleDateChange()" type="date" class="w-full bg-white border border-gray-300 rounded-lg px-2 py-2 text-xs text-[#202124] focus:outline-none focus:border-blue-500">
             </div>
             <div>
               <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5" for="match-time-input">Heure</label>
@@ -322,6 +322,48 @@
     const supabaseUrl = "https://nvddccrdlesgpddzwacq.supabase.co";
     const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52ZGRjY3JkbGVzZ3BkZHp3YWNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwMjg2ODQsImV4cCI6MjA5NzYwNDY4NH0.uI4Xg3mjxoo0EYMMcg0UsV7B0hGJAF4Cf7L2H222mAM";
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+    // Global helper for local date strings
+    function getLocalDateString(offsetDays = 0) {
+      const d = new Date();
+      d.setDate(d.getDate() + offsetDays);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function handleDayChange() {
+      const dayVal = document.getElementById("day").value;
+      const dateInput = document.getElementById("match-date-input");
+      if (dayVal === "yesterday") {
+        dateInput.value = getLocalDateString(-1);
+      } else if (dayVal === "today") {
+        dateInput.value = getLocalDateString(0);
+      } else if (dayVal === "tomorrow") {
+        dateInput.value = getLocalDateString(1);
+      }
+    }
+
+    function handleDateChange() {
+      const dateVal = document.getElementById("match-date-input").value;
+      const daySelect = document.getElementById("day");
+      if (!dateVal) return;
+
+      const todayStr = getLocalDateString(0);
+      const yesterdayStr = getLocalDateString(-1);
+      const tomorrowStr = getLocalDateString(1);
+
+      if (dateVal === todayStr) {
+        daySelect.value = "today";
+      } else if (dateVal === yesterdayStr) {
+        daySelect.value = "yesterday";
+      } else if (dateVal === tomorrowStr) {
+        daySelect.value = "tomorrow";
+      } else {
+        daySelect.value = "later";
+      }
+    }
 
     let editingMatchId = null;
 
@@ -534,6 +576,12 @@
         filterAndRenderMatches();
       } catch (err) {
         console.error("Error rendering matches:", err);
+      }
+
+      // Set default date input value to today
+      const dateInput = document.getElementById("match-date-input");
+      if (dateInput && !dateInput.value) {
+        dateInput.value = getLocalDateString(0);
       }
 
       // 7. Auto-refresh status and times in real-time every 30 seconds
@@ -864,7 +912,7 @@
         document.getElementById(`team${type}-custom-flag`).disabled = false;
       });
       
-      document.getElementById("match-date-input").value = "";
+      document.getElementById("match-date-input").value = getLocalDateString(0);
       document.getElementById("match-time-input").value = "";
       document.getElementById("match-venue-city").value = "";
       document.getElementById("match-venue-country").value = "États-Unis";
@@ -970,14 +1018,6 @@
 
     // Helper function to resolve dynamic status, dynamic day category, and default score values
     function getEffectiveMatch(m) {
-      const getLocalDateString = (offsetDays = 0) => {
-        const d = new Date();
-        d.setDate(d.getDate() + offsetDays);
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-      };
       const todayStr = getLocalDateString(0);
       const yesterdayStr = getLocalDateString(-1);
       const tomorrowStr = getLocalDateString(1);
@@ -1085,14 +1125,6 @@
         return true;
       });
 
-      const getLocalDateString = (offsetDays = 0) => {
-        const d = new Date();
-        d.setDate(d.getDate() + offsetDays);
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-      };
       const todayStr = getLocalDateString(0);
       const yesterdayStr = getLocalDateString(-1);
       const tomorrowStr = getLocalDateString(1);
@@ -1617,14 +1649,6 @@
         }
 
         const fixtures = result.fixtures;
-        const getLocalDateString = (offsetDays = 0) => {
-          const d = new Date();
-          d.setDate(d.getDate() + offsetDays);
-          const year = d.getFullYear();
-          const month = String(d.getMonth() + 1).padStart(2, '0');
-          const day = String(d.getDate()).padStart(2, '0');
-          return `${year}-${month}-${day}`;
-        };
         const todayStr = getLocalDateString(0);
 
         let mappedMatches = fixtures.map((item) => {
@@ -1795,14 +1819,6 @@
         const localMatches = await response.json();
         if (!Array.isArray(localMatches)) throw new Error("Invalid API response format");
 
-        const getLocalDateString = (offsetDays = 0) => {
-          const d = new Date();
-          d.setDate(d.getDate() + offsetDays);
-          const year = d.getFullYear();
-          const month = String(d.getMonth() + 1).padStart(2, '0');
-          const day = String(d.getDate()).padStart(2, '0');
-          return `${year}-${month}-${day}`;
-        };
         const todayStr = getLocalDateString(0);
 
         // Map local matches to stable IDs by matching team names from fixtures.json
@@ -1918,6 +1934,8 @@
     // Expose functions globally for inline event handlers
     window.handleTeamSelect = handleTeamSelect;
     window.updateFlagPreview = updateFlagPreview;
+    window.handleDayChange = handleDayChange;
+    window.handleDateChange = handleDateChange;
     window.toggleScoreInputs = toggleScoreInputs;
     window.handleAddMatch = handleAddMatch;
     window.startEditMatch = startEditMatch;
