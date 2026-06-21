@@ -893,12 +893,12 @@ function Index() {
             </div>
           </div>
 
-          <nav className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <nav className="mt-3 flex flex-wrap gap-1.5 sm:gap-2">
             <GroupTab label="Tous" active={activeGroup === "all"} onClick={() => setActiveGroup("all")} />
             {GROUPS.map((g) => (
               <GroupTab
                 key={g}
-                label={`Groupe ${g}`}
+                label={g}
                 active={activeGroup === g}
                 onClick={() => setActiveGroup(g)}
               />
@@ -970,13 +970,16 @@ function Index() {
 }
 
 function GroupTab({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  const isAll = label === "Tous";
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`shrink-0 rounded-full border px-4 py-1.5 text-sm transition ${
+      className={`shrink-0 rounded-full border text-xs sm:text-sm font-medium transition duration-200 ${
+        isAll ? "px-4 py-1.5" : "w-8 h-8 flex items-center justify-center"
+      } ${
         active
-          ? "border-[#1a73e8] bg-[#e8f0fe] font-medium text-[#1a73e8]"
+          ? "border-[#1a73e8] bg-[#e8f0fe] text-[#1a73e8]"
           : "border-[#e5e7eb] bg-white text-[#5f6368] hover:border-[#d2d5da] hover:text-[#202124]"
       }`}
     >
