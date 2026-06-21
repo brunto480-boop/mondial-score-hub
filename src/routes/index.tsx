@@ -15,7 +15,7 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-type Day = "yesterday" | "today" | "tomorrow" | "later";
+type Day = "yesterday" | "today" | "tomorrow" | "later" | "past";
 
 type Team = {
   name: string;
@@ -1003,6 +1003,15 @@ function Index() {
                   matches={liveMatches}
                 />
               )}
+              {filtered.some(m => m.status !== "live" && (m.rawDate < yesterdayStr || (!m.rawDate && m.day === "past"))) && (
+                <Section
+                  title="Plus tôt"
+                  subtitle="Matchs passés"
+                  matches={filtered.filter((m) => {
+                    return m.status !== "live" && (m.rawDate < yesterdayStr || (!m.rawDate && m.day === "past"));
+                  })}
+                />
+              )}
               <Section
                 title="Aujourd'hui"
                 subtitle="Phase de groupes · Aujourd'hui"
@@ -1024,6 +1033,15 @@ function Index() {
                   return m.rawDate === tomorrowStr || (!m.rawDate && m.day === "tomorrow");
                 })}
               />
+              {filtered.some(m => m.status !== "live" && (m.rawDate > tomorrowStr || (!m.rawDate && m.day === "later"))) && (
+                <Section
+                  title="Plus tard"
+                  subtitle="Matchs à venir"
+                  matches={filtered.filter((m) => {
+                    return m.status !== "live" && (m.rawDate > tomorrowStr || (!m.rawDate && m.day === "later"));
+                  })}
+                />
+              )}
             </>
           )
         ) : (
@@ -1109,7 +1127,7 @@ function MatchCard({ match }: { match: Match }) {
               </span>
             ) : (
               <span className="font-medium text-[#1a73e8]">
-                {match.date ? `${match.date}${match.time ? ` · ${match.time.replace(':', 'h')}` : ""}` : (match.day === "tomorrow" ? "Demain" : match.day === "yesterday" ? "Hier" : match.day === "today" ? "Aujourd'hui" : "Plus tard")}
+                {match.date ? `${match.date}${match.time ? ` · ${match.time.replace(':', 'h')}` : ""}` : (match.day === "tomorrow" ? "Demain" : match.day === "yesterday" ? "Hier" : match.day === "today" ? "Aujourd'hui" : match.day === "past" ? "Plus tôt" : "Plus tard")}
               </span>
             )}
             {match.teamA.venueCity && (
