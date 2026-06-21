@@ -975,14 +975,99 @@
       }
     }
 
-    // Day priority for stable sorting
-    function getDayPriority(day) {
-      switch (day) {
-        case 'yesterday': return 1;
-        case 'today': return 2;
-        case 'tomorrow': return 3;
-        case 'later': return 4;
-        default: return 5;
+    // Helper function to resolve dynamic status, dynamic day category, and default score values
+    function getEffectiveMatch(m) {
+      const getLocalDateString = (offsetDays = 0) => {
+        const d = new Date();
+        d.setDate(d.getDate() + offsetDays);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+      const todayStr = getLocalDateString(0);
+      const yesterdayStr = getLocalDateString(-1);
+      const tomorrowStr = getLocalDateString(1);
+
+      let dayVal = m.day || "later";
+      if (m.rawDate) {
+        if (m.rawDate === todayStr) {
+          dayVal = "today";
+        } else if (m.rawDate === yesterdayStr) {
+          dayVal = "yesterday";
+        } else if (m.rawDate === tomorrowStr) {
+          dayVal = "tomorrow";
+        } else {
+          dayVal = "later";
+        }
+      }
+
+      let statusVal = m.status;
+      if (m.status === "scheduled" && m.rawDate && m.time) {
+        try {
+          const [hours, minutes] = m.time.split(':');
+          const kickoff = new Date(m.rawDate);
+          kickoff.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+          const now = new Date();
+          const diffMs = now - kickoff;
+          if (diffMs >= 0) {
+            const matchDurationMs = 105 * 60 * 1000; // 105 minutes (90' + halftime + details)
+            if (diffMs < matchDurationMs) {
+              statusVal = "live";
+            } else {
+              statusVal = "finished";
+            }
+          }
+        } catch (e) {
+          console.error("Auto status error:", e);
+        }
+      }
+
+      let scoreA = m.teamA.score;
+      let scoreB = m.teamB.score;
+      if (statusVal !== "scheduled") {
+        if (scoreA === undefined || scoreA === null) scoreA = 0;
+        if (scoreB === undefined || scoreB === null) scoreB = 0;
+      }
+
+      return {
+        ...m,
+        day: dayVal,
+        status: statusVal,
+        teamA: {
+          ...m.teamA,
+          score: scoreA
+        },
+        teamB: {
+          ...m.teamB,
+          score: scoreB
+        }
+      };
+    }
+
+    // Toggle status (scheduled / live / finished)
+    function toggleMatchStatus(matchId) {
+      const idx = matches.findIndex(m => m.id === matchId);
+      if (idx !== -1) {
+        const match = matches[idx];
+        const currentStatus = getEffectiveMatch(match).status;
+        if (currentStatus === "scheduled") {
+          match.status = "live";
+          match.teamA.score = match.teamA.score !== undefined ? match.teamA.score : 0;
+          match.teamB.score = match.teamB.score !== undefined ? match.teamB.score : 0;
+        } else if (currentStatus === "live") {
+          match.status = "finished";
+          match.teamA.score = match.teamA.score !== undefined ? match.teamA.score : 0;
+          match.teamB.score = match.teamB.score !== undefined ? match.teamB.score : 0;
+        } else {
+          match.status = "scheduled";
+          delete match.teamA.score;
+          delete match.teamB.score;
+        }
+        saveMatches();
+        saveMatchToSupabase(match);
+        filterAndRenderMatches();
+        showToast("Statut du match modifié");
       }
     }
 
@@ -995,7 +1080,9 @@
       const container = document.getElementById("matches-container");
       const emptyState = document.getElementById("empty-state");
       
-      const filtered = matches.filter((m) => {
+      const effectiveMatches = matches.map(getEffectiveMatch);
+      
+      const filtered = effectiveMatches.filter((m) => {
         if (filterGroup !== "all" && m.group !== `Groupe ${filterGroup}`) return false;
         if (filterDay !== "all" && m.day !== filterDay) return false;
         if (searchQuery) {
@@ -1005,17 +1092,31 @@
         return true;
       });
 
-      // Stable chronological sorting: rawDate/day -> time -> group -> id
+      const getLocalDateString = (offsetDays = 0) => {
+        const d = new Date();
+        d.setDate(d.getDate() + offsetDays);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+      const todayStr = getLocalDateString(0);
+      const yesterdayStr = getLocalDateString(-1);
+      const tomorrowStr = getLocalDateString(1);
+
+      const getSortableDate = (m) => {
+        if (m.rawDate) return m.rawDate;
+        if (m.day === "yesterday") return yesterdayStr;
+        if (m.day === "today") return todayStr;
+        if (m.day === "tomorrow") return tomorrowStr;
+        return "2026-12-31";
+      };
+
+      // Stable chronological sorting: date -> time -> group -> id
       filtered.sort((a, b) => {
-        const dateA = a.rawDate || "";
-        const dateB = b.rawDate || "";
-        if (dateA && dateB) {
-          if (dateA !== dateB) return dateA.localeCompare(dateB);
-        } else {
-          const pA = getDayPriority(a.day);
-          const pB = getDayPriority(b.day);
-          if (pA !== pB) return pA - pB;
-        }
+        const dateA = getSortableDate(a);
+        const dateB = getSortableDate(b);
+        if (dateA !== dateB) return dateA.localeCompare(dateB);
 
         const timeA = a.time || "";
         const timeB = b.time || "";
@@ -1042,6 +1143,10 @@
       filtered.forEach((m) => {
         const isFinished = m.status === "finished";
         const isLive = m.status === "live";
+        
+        const originalMatch = matches.find(om => om.id === m.id);
+        const isAutoStatus = originalMatch && originalMatch.status !== m.status;
+        
         const scoreA = m.teamA.score !== undefined ? m.teamA.score : "-";
         const scoreB = m.teamB.score !== undefined ? m.teamB.score : "-";
         
@@ -1136,7 +1241,7 @@
             <div class="flex items-center justify-between mt-5 pt-3 border-t border-gray-100">
               <button onclick="toggleMatchStatus('${m.id}')" class="text-xs flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border ${isFinished ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : isLive ? 'bg-red-50 border-red-200 text-red-700 font-semibold animate-pulse' : 'bg-gray-100 border-gray-200 text-gray-600'} hover:brightness-95 transition">
                 <i data-lucide="${isFinished ? 'check-circle' : isLive ? 'play' : 'clock'}" class="w-3.5 h-3.5"></i>
-                <span>${isFinished ? 'Terminé' : isLive ? 'En cours' : 'Programmé'}</span>
+                <span>${isFinished ? 'Terminé' : isLive ? 'En cours' : 'Programmé'}${isAutoStatus ? ' (Auto)' : ''}</span>
               </button>
               
               <div class="flex items-center gap-1.5">
