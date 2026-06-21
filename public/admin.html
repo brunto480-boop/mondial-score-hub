@@ -23,6 +23,10 @@
   </script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Flatpickr CSS & JS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
   <style>
     body {
       background-color: #f8f9fa;
@@ -42,6 +46,26 @@
     }
     ::-webkit-scrollbar-thumb:hover {
       background: #6b7280;
+    }
+    /* Flatpickr Premium Style Overrides */
+    .flatpickr-calendar {
+      font-family: 'Outfit', sans-serif !important;
+      border: 1px solid #e5e7eb !important;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+      border-radius: 12px !important;
+      background: #ffffff !important;
+    }
+    .flatpickr-day.selected, .flatpickr-day.selected:hover, .flatpickr-day.selected:focus {
+      background: #2563eb !important; /* blue-600 */
+      border-color: #2563eb !important;
+      color: #ffffff !important;
+    }
+    .flatpickr-months .flatpickr-month {
+      color: #202124 !important;
+      fill: #202124 !important;
+    }
+    .flatpickr-current-month .flatpickr-monthDropdown-months {
+      font-weight: 600 !important;
     }
   </style>
 </head>
@@ -90,6 +114,7 @@
         </h2>
         
         <form id="add-match-form" onsubmit="handleAddMatch(event)" class="space-y-4">
+
           <!-- Group Selection -->
           <div>
             <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5" for="group">Groupe</label>
@@ -111,7 +136,7 @@
 
           <!-- Team A Grid -->
           <div class="border-t border-gray-200 pt-3">
-            <h3 class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Équipe A (Domicile)</h3>
+            <h3 class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Équipe A</h3>
             <div class="grid grid-cols-2 gap-2">
               <div>
                 <label class="block text-[10px] text-[#5f6368] mb-1" for="teamA-select">Sélectionner</label>
@@ -137,7 +162,7 @@
 
           <!-- Team B Grid -->
           <div class="border-t border-gray-200 pt-3">
-            <h3 class="text-xs font-bold text-amber-600 uppercase tracking-wider mb-2">Équipe B (Extérieur)</h3>
+            <h3 class="text-xs font-bold text-amber-600 uppercase tracking-wider mb-2">Équipe B</h3>
             <div class="grid grid-cols-2 gap-2">
               <div>
                 <label class="block text-[10px] text-[#5f6368] mb-1" for="teamB-select">Sélectionner</label>
@@ -164,8 +189,8 @@
           <!-- Schedule Grid -->
           <div class="border-t border-gray-200 pt-3 grid grid-cols-3 gap-2">
             <div>
-              <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5" for="day">Jour</label>
-              <select id="day" onchange="handleDayChange()" required class="w-full bg-white border border-gray-300 rounded-lg px-2 py-2 text-xs text-[#202124] focus:outline-none focus:border-blue-500">
+              <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5 whitespace-nowrap" for="day">Jour</label>
+              <select id="day" onchange="handleDayChange()" required class="w-full bg-white border border-gray-300 rounded-lg px-2 h-[38px] text-xs text-[#202124] focus:outline-none focus:border-blue-500">
                 <option value="yesterday">Hier</option>
                 <option value="today" selected>Aujourd'hui</option>
                 <option value="tomorrow">Demain</option>
@@ -173,12 +198,12 @@
               </select>
             </div>
             <div>
-              <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5" for="match-date-input">Date</label>
-              <input id="match-date-input" onchange="handleDateChange()" type="date" class="w-full bg-white border border-gray-300 rounded-lg px-2 py-2 text-xs text-[#202124] focus:outline-none focus:border-blue-500">
+              <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5 whitespace-nowrap" for="match-date-input">Date</label>
+              <input id="match-date-input" placeholder="Choisir une date" type="text" readonly class="w-full bg-white border border-gray-300 rounded-lg px-2 h-[38px] text-xs text-[#202124] focus:outline-none focus:border-blue-500 cursor-pointer">
             </div>
             <div>
-              <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5" for="match-time-input">Heure (ex: 20:00)</label>
-              <input id="match-time-input" type="text" placeholder="20:00" pattern="^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$" title="Format 24h (ex: 20:00)" required class="w-full bg-white border border-gray-300 rounded-lg px-2 py-2 text-xs text-[#202124] focus:outline-none focus:border-blue-500">
+              <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5 whitespace-nowrap" for="match-time-input">Heure</label>
+              <input id="match-time-input" type="text" placeholder="20:00" pattern="^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$" title="Format 24h (ex: 20:00)" required class="w-full bg-white border border-gray-300 rounded-lg px-2 h-[38px] text-xs text-[#202124] focus:outline-none focus:border-blue-500">
             </div>
           </div>
 
@@ -231,6 +256,8 @@
           </div>
         </form>
       </div>
+
+
         </div>
       </div>
     </section>
@@ -291,6 +318,63 @@
       </div>
 
     </section>
+
+    <!-- SECTION: JSON Import (Full width below) -->
+    <section class="lg:col-span-12 mt-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+      <div class="bg-gradient-to-r from-blue-50/80 to-indigo-50/50 rounded-xl border border-blue-200 p-6 shadow-sm">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <!-- Left side: Description & Action (4 cols) -->
+          <div class="lg:col-span-4 flex flex-col justify-between space-y-4">
+            <div>
+              <h2 class="text-base font-bold text-blue-900 mb-2 flex items-center gap-2">
+                <i data-lucide="code" class="w-5 h-5 text-blue-600"></i>
+                <span>Importer depuis un JSON</span>
+              </h2>
+              <p class="text-xs text-[#5f6368] leading-relaxed mb-4">
+                Collez le code JSON d'un match individuel ou d'un tableau (liste) de matchs pour les insérer ou les mettre à jour directement dans la base de données.
+              </p>
+              
+              <!-- Requirements / Tips -->
+              <div class="bg-white/80 rounded-lg p-3 border border-blue-100 text-[11px] text-slate-700 space-y-1.5 shadow-sm">
+                <span class="font-semibold text-blue-800 flex items-center gap-1">
+                  <i data-lucide="info" class="w-3.5 h-3.5"></i> Champs requis :
+                </span>
+                <ul class="list-disc list-inside space-y-0.5 opacity-90 pl-1">
+                  <li><code>teamA.name</code> et <code>teamB.name</code></li>
+                  <li><code>group</code> (ex: <code class="bg-slate-100 px-1 rounded">Groupe A</code>)</li>
+                  <li><code>date</code> (ex: <code class="bg-slate-100 px-1 rounded">20:00</code>)</li>
+                </ul>
+                <p class="text-[10px] text-gray-500 pt-1 border-t border-gray-100">
+                  Les logos/drapeaux (ex: <code class="bg-slate-100 px-1 rounded">fr</code>, <code class="bg-slate-100 px-1 rounded">br</code>) seront récupérés.
+                </p>
+              </div>
+            </div>
+            
+            <button type="button" onclick="importMatchJson()" class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-3 font-semibold transition hover:shadow-lg hover:shadow-blue-500/25 flex items-center justify-center gap-2 text-sm cursor-pointer border border-blue-600">
+              <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+              <span>Importer les matchs</span>
+            </button>
+          </div>
+          
+          <!-- Right side: JSON Input (8 cols) -->
+          <div class="lg:col-span-8 flex flex-col">
+            <label for="json-import-input" class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-2">Code JSON à coller</label>
+            <textarea id="json-import-input" rows="8" class="w-full flex-1 bg-white border border-gray-300 rounded-lg p-3 text-xs font-mono text-gray-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none placeholder-gray-400 shadow-inner" placeholder='[
+  {
+    "group": "Groupe A",
+    "day": "today",
+    "status": "scheduled",
+    "date": "20:00",
+    "teamA": { "name": "Mexique", "flag": "mx" },
+    "teamB": { "name": "Corée du Sud", "flag": "kr" }
+  }
+]'></textarea>
+          </div>
+          
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- Confirm reset dialog -->
@@ -306,6 +390,31 @@
       <div class="flex justify-end gap-3">
         <button onclick="closeResetModal()" class="px-4 py-2 text-sm font-medium bg-white hover:bg-gray-100 border border-gray-300 text-gray-700 rounded-lg transition">Annuler</button>
         <button onclick="resetToDefaults()" class="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-500 text-white rounded-lg transition hover:shadow-lg hover:shadow-red-500/25">Réinitialiser</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Adjust game time dialog -->
+  <div id="time-adjust-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/55 backdrop-blur-sm hidden">
+    <div class="bg-white border border-[#e5e7eb] rounded-xl max-w-md w-full p-6 shadow-xl animate-in zoom-in-95 duration-200">
+      <div class="flex items-center gap-3 text-blue-600 mb-4">
+        <i data-lucide="clock" class="w-6 h-6 shrink-0 text-blue-600"></i>
+        <h3 class="text-lg font-bold text-[#202124]">Ajuster le temps du match</h3>
+      </div>
+      <p id="time-adjust-description" class="text-sm text-[#5f6368] mb-4 leading-relaxed">
+        Saisissez la minute actuelle du match.
+      </p>
+      
+      <input type="hidden" id="time-adjust-match-id" value="">
+      
+      <div class="mb-6">
+        <label for="time-adjust-input" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Minute de jeu</label>
+        <input type="text" id="time-adjust-input" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-[#202124] focus:outline-none focus:border-blue-500" placeholder="Ex: 25, 45+2, 70 ou 90+3">
+      </div>
+      
+      <div class="flex justify-end gap-3">
+        <button onclick="closeTimeAdjustModal()" class="px-4 py-2 text-sm font-medium bg-white hover:bg-gray-100 border border-gray-300 text-gray-700 rounded-lg transition">Annuler</button>
+        <button onclick="saveTimeAdjustment()" class="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition hover:shadow-lg hover:shadow-blue-500/25">Valider</button>
       </div>
     </div>
   </div>
@@ -344,17 +453,26 @@
     function handleDayChange() {
       const dayVal = document.getElementById("day").value;
       const dateInput = document.getElementById("match-date-input");
+      let targetDate = "";
       if (dayVal === "yesterday") {
-        dateInput.value = getLocalDateString(-1);
+        targetDate = getLocalDateString(-1);
       } else if (dayVal === "today") {
-        dateInput.value = getLocalDateString(0);
+        targetDate = getLocalDateString(0);
       } else if (dayVal === "tomorrow") {
-        dateInput.value = getLocalDateString(1);
+        targetDate = getLocalDateString(1);
+      }
+      
+      if (targetDate) {
+        if (window.fpInstance) {
+          window.fpInstance.setDate(targetDate);
+        } else {
+          dateInput.value = targetDate;
+        }
       }
     }
 
-    function handleDateChange() {
-      const dateVal = document.getElementById("match-date-input").value;
+    function handleDateChange(customVal) {
+      const dateVal = customVal || document.getElementById("match-date-input").value;
       const daySelect = document.getElementById("day");
       if (!dateVal) return;
 
@@ -588,9 +706,23 @@
 
       // Set default date and time input values to today and current hour
       const dateInput = document.getElementById("match-date-input");
-      if (dateInput && !dateInput.value) {
-        dateInput.value = getLocalDateString(0);
+      const defaultDateVal = (dateInput && dateInput.value) ? dateInput.value : getLocalDateString(0);
+      
+      // Initialize Flatpickr
+      if (typeof flatpickr !== "undefined") {
+        window.fpInstance = flatpickr("#match-date-input", {
+          locale: "fr",
+          dateFormat: "Y-m-d",
+          defaultDate: defaultDateVal,
+          allowInput: true,
+          onChange: function(selectedDates, dateStr, instance) {
+            handleDateChange(dateStr);
+          }
+        });
+      } else if (dateInput && !dateInput.value) {
+        dateInput.value = defaultDateVal;
       }
+      
       const timeInput = document.getElementById("match-time-input");
       if (timeInput && !timeInput.value) {
         timeInput.value = getCurrentTime24h();
@@ -777,6 +909,16 @@
             delete match.teamA.score;
           }
           
+          if (statusVal === "live") {
+            match.teamA.halfState = "1st";
+          } else if (statusVal === "finished" || statusVal === "scheduled") {
+            delete match.teamA.halfState;
+            delete match.teamA.firstHalfStart;
+            delete match.teamA.secondHalfStart;
+            delete match.teamA.coolingBreak;
+            delete match.teamA.coolingBreakStart;
+          }
+          
           match.teamB.name = teamBName;
           match.teamB.flag = teamBFlag;
           if (isFinished) {
@@ -800,7 +942,8 @@
           goals: [], yellows: [], reds: [],
           venueCity: venueCityVal,
           venueCountry: venueCountryVal,
-          ...(isFinished ? { score: scoreAVal } : {})
+          ...(isFinished ? { score: scoreAVal } : {}),
+          ...(statusVal === "live" ? { halfState: "1st" } : {})
         };
         
         const teamB = {
@@ -874,7 +1017,13 @@
       }
       document.getElementById("day").value = dayVal;
       document.getElementById("status").value = match.status;
-      document.getElementById("match-date-input").value = match.rawDate || "";
+      
+      const rawDateVal = match.rawDate || "";
+      if (window.fpInstance) {
+        window.fpInstance.setDate(rawDateVal);
+      } else {
+        document.getElementById("match-date-input").value = rawDateVal;
+      }
       
       let timeVal = match.time || "";
       if (timeVal.includes('h')) {
@@ -944,7 +1093,12 @@
         document.getElementById(`team${type}-custom-flag`).disabled = false;
       });
       
-      document.getElementById("match-date-input").value = getLocalDateString(0);
+      const defaultDate = getLocalDateString(0);
+      if (window.fpInstance) {
+        window.fpInstance.setDate(defaultDate);
+      } else {
+        document.getElementById("match-date-input").value = defaultDate;
+      }
       document.getElementById("match-time-input").value = getCurrentTime24h();
       document.getElementById("match-venue-city").value = "";
       document.getElementById("match-venue-country").value = "États-Unis";
@@ -1118,6 +1272,7 @@
         const currentStatus = getEffectiveMatch(match).status;
         if (currentStatus === "scheduled") {
           match.status = "live";
+          match.teamA.halfState = "1st";
           match.teamA.score = match.teamA.score !== undefined ? match.teamA.score : 0;
           match.teamB.score = match.teamB.score !== undefined ? match.teamB.score : 0;
         } else if (currentStatus === "live") {
@@ -1128,6 +1283,11 @@
           match.status = "scheduled";
           delete match.teamA.score;
           delete match.teamB.score;
+          delete match.teamA.halfState;
+          delete match.teamA.firstHalfStart;
+          delete match.teamA.secondHalfStart;
+          delete match.teamA.coolingBreak;
+          delete match.teamA.coolingBreakStart;
         }
         saveMatches();
         saveMatchToSupabase(match);
@@ -1201,29 +1361,9 @@
         const isFinished = m.status === "finished";
         const isLive = m.status === "live";
         
-        let liveTimeDisplay = "";
-        if (isLive && m.rawDate && m.time) {
-          try {
-            const [hours, minutes] = m.time.split(':');
-            const kickoff = new Date(m.rawDate);
-            kickoff.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
-            const now = new Date();
-            const diffMs = now - kickoff;
-            if (diffMs >= 0) {
-              const diffMins = Math.floor(diffMs / (60 * 1000));
-              if (diffMins < 45) {
-                liveTimeDisplay = ` · ${diffMins}'`;
-              } else if (diffMins < 60) {
-                liveTimeDisplay = ` · Mi-temps`;
-              } else if (diffMins < 105) {
-                liveTimeDisplay = ` · ${45 + (diffMins - 60)}'`;
-              } else {
-                liveTimeDisplay = ` · 90'`;
-              }
-            }
-          } catch (e) {
-            console.error("Error calculating live match minute in admin:", e);
-          }
+        let liveStatusText = "";
+        if (isLive) {
+          liveStatusText = getLiveStatusText(m);
         }
         
         const originalMatch = matches.find(om => om.id === m.id);
@@ -1319,11 +1459,34 @@
               </div>
             </div>
 
+            <!-- Live Controls (only if status is live) -->
+            ${isLive ? `
+              <div class="mt-3 p-2.5 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
+                <div class="text-[10px] font-bold text-[#5f6368] uppercase tracking-wider">Contrôles en Direct</div>
+                <div class="flex flex-wrap gap-2">
+                  <!-- Half state button -->
+                  ${renderHalfStateButton(m)}
+                  
+                  <!-- Cooling break toggle -->
+                  <button onclick="toggleCoolingBreak('${m.id}')" class="text-xs flex items-center gap-1 px-2.5 py-1 rounded-md border ${m.teamA.coolingBreak ? 'bg-blue-600 border-blue-600 text-white font-medium' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'} transition">
+                    <i data-lucide="droplet" class="w-3 h-3"></i>
+                    <span>${m.teamA.coolingBreak ? 'Pause fraîcheur active' : 'Pause fraîcheur'}</span>
+                  </button>
+
+                  <!-- Adjust time button -->
+                  <button onclick="editLiveTime('${m.id}')" class="text-xs flex items-center gap-1 px-2.5 py-1 rounded-md border bg-white border-gray-300 text-gray-700 hover:bg-gray-50 transition" title="Ajuster le temps de jeu">
+                    <i data-lucide="clock" class="w-3 h-3"></i>
+                    <span>Ajuster temps</span>
+                  </button>
+                </div>
+              </div>
+            ` : ''}
+
             <!-- Card Actions -->
             <div class="flex items-center justify-between mt-5 pt-3 border-t border-gray-100">
               <button onclick="toggleMatchStatus('${m.id}')" class="text-xs flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border ${isFinished ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : isLive ? 'bg-red-50 border-red-200 text-red-700 font-semibold animate-pulse' : 'bg-gray-100 border-gray-200 text-gray-600'} hover:brightness-95 transition">
                 <i data-lucide="${isFinished ? 'check-circle' : isLive ? 'play' : 'clock'}" class="w-3.5 h-3.5"></i>
-                <span>${isFinished ? 'Terminé' : isLive ? 'En cours' + liveTimeDisplay : 'Programmé'}${isAutoStatus ? ' (Auto)' : ''}</span>
+                <span>${isFinished ? 'Terminé' : isLive ? liveStatusText : 'Programmé'}${isAutoStatus ? ' (Auto)' : ''}</span>
               </button>
               
               <div class="flex items-center gap-1.5">
@@ -1760,6 +1923,21 @@
             if (existingMatch.teamA.venueCountry) {
               newMatch.teamA.venueCountry = existingMatch.teamA.venueCountry;
             }
+            if (existingMatch.teamA.coolingBreak !== undefined) {
+              newMatch.teamA.coolingBreak = existingMatch.teamA.coolingBreak;
+            }
+            if (existingMatch.teamA.coolingBreakStart !== undefined) {
+              newMatch.teamA.coolingBreakStart = existingMatch.teamA.coolingBreakStart;
+            }
+            if (existingMatch.teamA.halfState !== undefined) {
+              newMatch.teamA.halfState = existingMatch.teamA.halfState;
+            }
+            if (existingMatch.teamA.firstHalfStart !== undefined) {
+              newMatch.teamA.firstHalfStart = existingMatch.teamA.firstHalfStart;
+            }
+            if (existingMatch.teamA.secondHalfStart !== undefined) {
+              newMatch.teamA.secondHalfStart = existingMatch.teamA.secondHalfStart;
+            }
           }
 
           return newMatch;
@@ -1931,6 +2109,21 @@
             if (existingMatch.teamA.venueCountry) {
               newMatch.teamA.venueCountry = existingMatch.teamA.venueCountry;
             }
+            if (existingMatch.teamA.coolingBreak !== undefined) {
+              newMatch.teamA.coolingBreak = existingMatch.teamA.coolingBreak;
+            }
+            if (existingMatch.teamA.coolingBreakStart !== undefined) {
+              newMatch.teamA.coolingBreakStart = existingMatch.teamA.coolingBreakStart;
+            }
+            if (existingMatch.teamA.halfState !== undefined) {
+              newMatch.teamA.halfState = existingMatch.teamA.halfState;
+            }
+            if (existingMatch.teamA.firstHalfStart !== undefined) {
+              newMatch.teamA.firstHalfStart = existingMatch.teamA.firstHalfStart;
+            }
+            if (existingMatch.teamA.secondHalfStart !== undefined) {
+              newMatch.teamA.secondHalfStart = existingMatch.teamA.secondHalfStart;
+            }
           }
 
           return newMatch;
@@ -1963,7 +2156,368 @@
       })
       .subscribe();
 
+    function getMatchMinute(m) {
+      const halfState = m.teamA.halfState || "1st";
+      const coolingBreakActive = m.teamA.coolingBreak;
+      const coolingBreakStart = m.teamA.coolingBreakStart;
+      
+      if (halfState === "1st") {
+        const start = m.teamA.firstHalfStart ? new Date(m.teamA.firstHalfStart) : null;
+        if (!start) {
+          return "0'";
+        }
+        const end = coolingBreakActive && coolingBreakStart ? new Date(coolingBreakStart) : new Date();
+        const diffMs = end - start;
+        const diffMins = Math.max(0, Math.floor(diffMs / (60 * 1000)));
+        if (diffMins <= 45) {
+          return `${diffMins}'`;
+        } else {
+          return `45'${diffMins - 45}`;
+        }
+      } else if (halfState === "halftime") {
+        return "45'";
+      } else if (halfState === "2nd") {
+        const start = m.teamA.secondHalfStart ? new Date(m.teamA.secondHalfStart) : null;
+        if (!start) {
+          return "45'";
+        }
+        const end = coolingBreakActive && coolingBreakStart ? new Date(coolingBreakStart) : new Date();
+        const diffMs = end - start;
+        const diffMins = Math.max(0, Math.floor(diffMs / (60 * 1000)));
+        if (diffMins <= 45) {
+          return `${45 + diffMins}'`;
+        } else {
+          return `90'${diffMins - 45}`;
+        }
+      }
+      return "";
+    }
+
+    function renderHalfStateButton(m) {
+      const halfState = m.teamA.halfState || "1st";
+      const firstStarted = !!m.teamA.firstHalfStart;
+      const secondStarted = !!m.teamA.secondHalfStart;
+      
+      if (halfState === "1st") {
+        if (!firstStarted) {
+          return `
+            <button onclick="startKickoff('${m.id}', '1st')" class="text-xs flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-600 border border-blue-600 text-white hover:bg-blue-700 transition font-medium">
+              <i data-lucide="play" class="w-3 h-3"></i>
+              <span>Coup d'envoi 1ère MT</span>
+            </button>
+          `;
+        }
+        return `
+          <button onclick="setHalfState('${m.id}', 'halftime')" class="text-xs flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition font-medium">
+            <i data-lucide="pause" class="w-3 h-3"></i>
+            <span>Fin 1ère Mi-temps</span>
+          </button>
+        `;
+      } else if (halfState === "halftime") {
+        return `
+          <button onclick="setHalfState('${m.id}', '2nd')" class="text-xs flex items-center gap-1 px-2.5 py-1 rounded-md bg-indigo-55 bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 transition font-medium">
+            <i data-lucide="skip-forward" class="w-3 h-3"></i>
+            <span>Début 2e Mi-temps</span>
+          </button>
+        `;
+      } else if (halfState === "2nd") {
+        return `
+          <button onclick="setHalfState('${m.id}', 'finished')" class="text-xs flex items-center gap-1 px-2.5 py-1 rounded-md bg-red-600 border border-red-200 text-white hover:bg-red-750 transition font-medium">
+            <i data-lucide="stop-circle" class="w-3 h-3"></i>
+            <span>Fin du Match</span>
+          </button>
+        `;
+      }
+      return "";
+    }
+
+    function startKickoff(matchId, half) {
+      const idx = matches.findIndex(m => m.id === matchId);
+      if (idx !== -1) {
+        const match = matches[idx];
+        const nowStr = new Date().toISOString();
+        if (half === "1st") {
+          match.teamA.firstHalfStart = nowStr;
+        } else if (half === "2nd") {
+          match.teamA.secondHalfStart = nowStr;
+        }
+        saveMatches();
+        saveMatchToSupabase(match);
+        filterAndRenderMatches();
+        showToast(half === "1st" ? "🚀 Coup d'envoi 1ère MT donné !" : "🚀 Coup d'envoi 2e MT donné !");
+      }
+    }
+
+    function toggleCoolingBreak(matchId) {
+      const idx = matches.findIndex(m => m.id === matchId);
+      if (idx !== -1) {
+        const match = matches[idx];
+        const now = new Date();
+        
+        if (!match.teamA.coolingBreak) {
+          match.teamA.coolingBreak = true;
+          match.teamA.coolingBreakStart = now.toISOString();
+          showToast("🥤 Pause fraîcheur activée (chrono arrêté)");
+        } else {
+          match.teamA.coolingBreak = false;
+          
+          if (match.teamA.coolingBreakStart) {
+            const breakDurationMs = now - new Date(match.teamA.coolingBreakStart);
+            const halfState = match.teamA.halfState || "1st";
+            if (halfState === "1st" && match.teamA.firstHalfStart) {
+              match.teamA.firstHalfStart = new Date(new Date(match.teamA.firstHalfStart).getTime() + breakDurationMs).toISOString();
+            } else if (halfState === "2nd" && match.teamA.secondHalfStart) {
+              match.teamA.secondHalfStart = new Date(new Date(match.teamA.secondHalfStart).getTime() + breakDurationMs).toISOString();
+            }
+            delete match.teamA.coolingBreakStart;
+          }
+          showToast("Pause fraîcheur désactivée (chrono repris)");
+        }
+        
+        saveMatches();
+        saveMatchToSupabase(match);
+        filterAndRenderMatches();
+      }
+    }
+
+    function getLiveStatusText(m) {
+      const halfState = m.teamA.halfState || "1st";
+      const coolingBreakActive = m.teamA.coolingBreak;
+
+      if (coolingBreakActive) {
+        return `Pause fraîcheur · ${getMatchMinute(m)}`;
+      }
+      if (halfState === "halftime") {
+        return "Mi-temps · 45'";
+      }
+      return `En cours · ${getMatchMinute(m)}`;
+    }
+
+    function parseMinuteString(val, halfState) {
+      const cleanVal = val.replace(/\s+/g, "");
+      
+      let base = 0;
+      let extra = 0;
+      
+      if (cleanVal.includes("'")) {
+        const parts = cleanVal.split("'");
+        base = parseInt(parts[0], 10);
+        extra = parseInt(parts[1], 10) || 0;
+      } else if (cleanVal.includes("+")) {
+        const parts = cleanVal.split("+");
+        base = parseInt(parts[0], 10);
+        extra = parseInt(parts[1], 10) || 0;
+      } else {
+        base = parseInt(cleanVal, 10);
+      }
+      
+      if (isNaN(base)) {
+        return NaN;
+      }
+      
+      let total = base + extra;
+      
+      if (halfState === "2nd" && total < 45) {
+        total = 45 + total;
+      }
+      
+      return total;
+    }
+
+    function editLiveTime(matchId) {
+      const idx = matches.findIndex(m => m.id === matchId);
+      if (idx === -1) return;
+      const match = matches[idx];
+      
+      const halfState = match.teamA.halfState || "1st";
+      if (halfState === "halftime") {
+        showToast("Impossible d'ajuster le temps pendant la mi-temps", true);
+        return;
+      }
+      
+      // Calculate current displayed minute
+      const currentMinuteStr = getMatchMinute(match);
+      
+      // Strip trailing quote if it ends with one, otherwise keep it (e.g. "45'2" remains "45'2")
+      let currentMinuteClean = currentMinuteStr;
+      if (currentMinuteClean.endsWith("'")) {
+        currentMinuteClean = currentMinuteClean.slice(0, -1);
+      }
+      
+      // Setup the integrated modal UI
+      document.getElementById("time-adjust-match-id").value = matchId;
+      document.getElementById("time-adjust-input").value = currentMinuteClean;
+      
+      const descriptionEl = document.getElementById("time-adjust-description");
+      if (halfState === "1st") {
+        descriptionEl.innerText = `Saisissez la minute actuelle de la 1ère mi-temps (ex: 25, ou 45'2).`;
+      } else {
+        descriptionEl.innerText = `Saisissez la minute actuelle de la 2e mi-temps (ex: 65, 90'3, ou 25 pour la 25e minute de la 2e mi-temps).`;
+      }
+      
+      document.getElementById("time-adjust-modal").classList.remove("hidden");
+    }
+
+    function closeTimeAdjustModal() {
+      document.getElementById("time-adjust-modal").classList.add("hidden");
+    }
+
+    function saveTimeAdjustment() {
+      const matchId = document.getElementById("time-adjust-match-id").value;
+      const idx = matches.findIndex(m => m.id === matchId);
+      if (idx === -1) {
+        closeTimeAdjustModal();
+        return;
+      }
+      const match = matches[idx];
+      const halfState = match.teamA.halfState || "1st";
+      
+      const inputVal = document.getElementById("time-adjust-input").value;
+      const targetMinute = parseMinuteString(inputVal, halfState);
+      
+      if (isNaN(targetMinute) || targetMinute < 0) {
+        showToast("Veuillez saisir un format de temps valide (ex: 25, 45'2, 70 ou 90'3).", true);
+        return;
+      }
+      
+      const now = new Date();
+      const coolingBreakActive = match.teamA.coolingBreak;
+      const coolingBreakStart = match.teamA.coolingBreakStart;
+      const referenceTime = (coolingBreakActive && coolingBreakStart) ? new Date(coolingBreakStart) : now;
+      
+      if (halfState === "1st") {
+        const start = new Date(referenceTime.getTime() - targetMinute * 60000);
+        match.teamA.firstHalfStart = start.toISOString();
+      } else if (halfState === "2nd") {
+        const start = new Date(referenceTime.getTime() - (targetMinute - 45) * 60000);
+        match.teamA.secondHalfStart = start.toISOString();
+      }
+      
+      saveMatches();
+      saveMatchToSupabase(match);
+      filterAndRenderMatches();
+      closeTimeAdjustModal();
+      showToast(`Temps ajusté à la ${targetMinute}e minute !`);
+    }
+
+    function setHalfState(matchId, state) {
+      const idx = matches.findIndex(m => m.id === matchId);
+      if (idx !== -1) {
+        const match = matches[idx];
+        if (state === "finished") {
+          match.status = "finished";
+          delete match.teamA.halfState;
+          delete match.teamA.firstHalfStart;
+          delete match.teamA.secondHalfStart;
+          delete match.teamA.coolingBreak;
+          delete match.teamA.coolingBreakStart;
+        } else {
+          match.teamA.halfState = state;
+          if (state === "2nd") {
+            match.teamA.secondHalfStart = new Date().toISOString(); // Start second half immediately!
+          }
+        }
+        saveMatches();
+        saveMatchToSupabase(match);
+        filterAndRenderMatches();
+        showToast(`Période du match mise à jour`);
+      }
+    }
+
+    async function importMatchJson() {
+      const textarea = document.getElementById("json-import-input");
+      const jsonStr = textarea.value.trim();
+      if (!jsonStr) {
+        showToast("Veuillez coller le JSON du match à importer", true);
+        return;
+      }
+      
+      try {
+        const data = JSON.parse(jsonStr);
+        let importArray = Array.isArray(data) ? data : [data];
+        
+        if (importArray.length === 0) {
+          showToast("Tableau de matches vide", true);
+          return;
+        }
+        
+        let successCount = 0;
+        for (const item of importArray) {
+          if (!item.teamA || !item.teamA.name || !item.teamB || !item.teamB.name) {
+            continue;
+          }
+          
+          const match = {
+            id: item.id || 'm_' + Math.random().toString(36).substr(2, 9),
+            group: item.group || "Groupe A",
+            day: item.day || "today",
+            status: item.status || "scheduled",
+            date: item.date || "20:00",
+            time: item.time || "20:00",
+            rawDate: item.rawDate || new Date().toISOString().split('T')[0],
+            teamA: {
+              name: item.teamA.name,
+              flag: item.teamA.flag || "un",
+              score: item.teamA.score !== undefined ? item.teamA.score : 0,
+              goals: item.teamA.goals || [],
+              yellows: item.teamA.yellows || [],
+              reds: item.teamA.reds || [],
+              yellowCard: item.teamA.yellowCard || false,
+              redCard: item.teamA.redCard || false,
+              venueCity: item.teamA.venueCity || item.venueCity || "",
+              venueCountry: item.teamA.venueCountry || item.venueCountry || "",
+              halfState: item.teamA.halfState,
+              firstHalfStart: item.teamA.firstHalfStart,
+              secondHalfStart: item.teamA.secondHalfStart,
+              coolingBreak: item.teamA.coolingBreak,
+              coolingBreakStart: item.teamA.coolingBreakStart
+            },
+            teamB: {
+              name: item.teamB.name,
+              flag: item.teamB.flag || "un",
+              score: item.teamB.score !== undefined ? item.teamB.score : 0,
+              goals: item.teamB.goals || [],
+              yellows: item.teamB.yellows || [],
+              reds: item.teamB.reds || [],
+              yellowCard: item.teamB.yellowCard || false,
+              redCard: item.teamB.redCard || false
+            }
+          };
+          
+          const idx = matches.findIndex(m => m.id === match.id);
+          if (idx !== -1) {
+            matches[idx] = match;
+          } else {
+            matches.push(match);
+          }
+          
+          await saveMatchToSupabase(match);
+          successCount++;
+        }
+        
+        if (successCount > 0) {
+          saveMatches();
+          filterAndRenderMatches();
+          textarea.value = "";
+          showToast(`${successCount} match(s) importé(s) avec succès !`);
+        } else {
+          showToast("Aucun match valide trouvé dans le JSON (champs requis: teamA.name, teamB.name)", true);
+        }
+      } catch (err) {
+        showToast("Erreur lors du parsing JSON : " + err.message, true);
+      }
+    }
+
     // Expose functions globally for inline event handlers
+    window.startKickoff = startKickoff;
+    window.importMatchJson = importMatchJson;
+    window.renderHalfStateButton = renderHalfStateButton;
+    window.toggleCoolingBreak = toggleCoolingBreak;
+    window.editLiveTime = editLiveTime;
+    window.closeTimeAdjustModal = closeTimeAdjustModal;
+    window.saveTimeAdjustment = saveTimeAdjustment;
+    window.getLiveStatusText = getLiveStatusText;
+    window.setHalfState = setHalfState;
     window.handleTeamSelect = handleTeamSelect;
     window.updateFlagPreview = updateFlagPreview;
     window.handleDayChange = handleDayChange;

@@ -28,6 +28,11 @@ type Team = {
   reds?: string[];
   venueCity?: string;
   venueCountry?: string;
+  coolingBreak?: boolean;
+  coolingBreakStart?: string;
+  halfState?: "1st" | "halftime" | "2nd";
+  firstHalfStart?: string;
+  secondHalfStart?: string;
 };
 
 type Match = {
@@ -54,28 +59,54 @@ const getLocalDateString = (offsetDays = 0) => {
   return `${year}-${month}-${day}`;
 };
 
-const getMatchMinute = (rawDate?: string, time?: string): string => {
-  if (!rawDate || !time) return "";
-  try {
-    const [hours, minutes] = time.split(':');
-    const kickoff = new Date(rawDate);
-    kickoff.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
-    const now = new Date();
-    const diffMs = now.getTime() - kickoff.getTime();
-    if (diffMs < 0) return "0'";
-    const diffMins = Math.floor(diffMs / (60 * 1000));
-    if (diffMins < 45) {
-      return `${diffMins}'`;
-    } else if (diffMins < 60) {
-      return "Mi-temps";
-    } else if (diffMins < 105) {
-      return `${45 + (diffMins - 60)}'`;
-    } else {
-      return "90'";
+const getMatchMinute = (match: Match): string => {
+  const halfState = match.teamA.halfState || "1st";
+  const coolingBreakActive = match.teamA.coolingBreak;
+  const coolingBreakStart = match.teamA.coolingBreakStart;
+
+  if (halfState === "1st") {
+    const start = match.teamA.firstHalfStart ? new Date(match.teamA.firstHalfStart) : null;
+    if (!start) {
+      return "0'";
     }
-  } catch (e) {
-    return "";
+    const end = coolingBreakActive && coolingBreakStart ? new Date(coolingBreakStart) : new Date();
+    const diffMs = end.getTime() - start.getTime();
+    const diffMins = Math.max(0, Math.floor(diffMs / (60 * 1000)));
+    if (diffMins <= 45) {
+      return `${diffMins}'`;
+    } else {
+      return `45'${diffMins - 45}`;
+    }
+  } else if (halfState === "halftime") {
+    return "45'";
+  } else if (halfState === "2nd") {
+    const start = match.teamA.secondHalfStart ? new Date(match.teamA.secondHalfStart) : null;
+    if (!start) {
+      return "45'";
+    }
+    const end = coolingBreakActive && coolingBreakStart ? new Date(coolingBreakStart) : new Date();
+    const diffMs = end.getTime() - start.getTime();
+    const diffMins = Math.max(0, Math.floor(diffMs / (60 * 1000)));
+    if (diffMins <= 45) {
+      return `${45 + diffMins}'`;
+    } else {
+      return `90'${diffMins - 45}`;
+    }
   }
+  return "";
+};
+
+const getLiveStatusText = (match: Match): string => {
+  const halfState = match.teamA.halfState || "1st";
+  const coolingBreakActive = match.teamA.coolingBreak;
+
+  if (coolingBreakActive) {
+    return `Pause fraîcheur · ${getMatchMinute(match)}`;
+  }
+  if (halfState === "halftime") {
+    return "Mi-temps · 45'";
+  }
+  return `En cours · ${getMatchMinute(match)}`;
 };
 
 // Helper builders (ignoring time and duration to maintain compatibility)
@@ -386,7 +417,12 @@ const mapSupabaseRowToMatch = (row: any): Match => ({
     yellows: row.team_a.yellows,
     reds: row.team_a.reds,
     venueCity: row.team_a.venueCity,
-    venueCountry: row.team_a.venueCountry
+    venueCountry: row.team_a.venueCountry,
+    coolingBreak: row.team_a.coolingBreak,
+    coolingBreakStart: row.team_a.coolingBreakStart,
+    halfState: row.team_a.halfState,
+    firstHalfStart: row.team_a.firstHalfStart,
+    secondHalfStart: row.team_a.secondHalfStart
   },
   teamB: {
     name: row.team_b.name,
@@ -754,7 +790,7 @@ function Index() {
         if (apiMatches.length > 0) {
           const dbMap = new Map(tempMatches.map((m) => [m.id, m]));
           
-          // Enrich apiMatches with Supabase venue metadata to prevent overwrite on sync
+          // Enrich apiMatches with Supabase metadata to prevent overwrite on sync
           apiMatches.forEach((m) => {
             const fsMatch = dbMap.get(m.id);
             if (fsMatch && fsMatch.teamA) {
@@ -763,6 +799,21 @@ function Index() {
               }
               if (fsMatch.teamA.venueCountry) {
                 m.teamA.venueCountry = fsMatch.teamA.venueCountry;
+              }
+              if (fsMatch.teamA.coolingBreak !== undefined) {
+                m.teamA.coolingBreak = fsMatch.teamA.coolingBreak;
+              }
+              if (fsMatch.teamA.coolingBreakStart !== undefined) {
+                m.teamA.coolingBreakStart = fsMatch.teamA.coolingBreakStart;
+              }
+              if (fsMatch.teamA.halfState !== undefined) {
+                m.teamA.halfState = fsMatch.teamA.halfState;
+              }
+              if (fsMatch.teamA.firstHalfStart !== undefined) {
+                m.teamA.firstHalfStart = fsMatch.teamA.firstHalfStart;
+              }
+              if (fsMatch.teamA.secondHalfStart !== undefined) {
+                m.teamA.secondHalfStart = fsMatch.teamA.secondHalfStart;
               }
             }
           });
@@ -1046,10 +1097,12 @@ function MatchCard({ match }: { match: Match }) {
           <TeamRow team={match.teamB} won={bWins} showScore={finished || isLive} />
           <div className="mt-2 flex items-center justify-between text-xs text-[#5f6368]">
             {isLive ? (
-              <span className="font-semibold text-[#d93025] flex items-center gap-1.5 animate-pulse">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#d93025] inline-block" />
-                En cours{match.rawDate && match.time ? ` · ${getMatchMinute(match.rawDate, match.time)}` : (match.time ? ` · ${match.time.replace(':', 'h')}` : "")}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-[#d93025] flex items-center gap-1.5 animate-pulse">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#d93025] inline-block" />
+                  {getLiveStatusText(match)}
+                </span>
+              </div>
             ) : finished ? (
               <span className="font-medium text-[#202124]">
                 Terminé · FT{match.date ? ` · ${match.date}` : ""}{match.time ? ` · ${match.time.replace(':', 'h')}` : ""}
