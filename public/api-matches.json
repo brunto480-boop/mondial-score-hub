@@ -1,0 +1,1892 @@
+[
+  {
+    "id": "m_ext_a_1",
+    "group": "Groupe A",
+    "status": "finished",
+    "date": "Jeu. 11 juin",
+    "rawDate": "2026-06-11",
+    "time": "21:00",
+    "teamA": {
+      "name": "Mexique",
+      "flag": "mx",
+      "score": 2,
+      "goals": [
+        "S. Giménez 27'",
+        "S. Giménez 7'"
+      ],
+      "yellows": [
+        "R. Jiménez 12'",
+        "R. Jiménez 79'"
+      ],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Afrique du Sud",
+      "flag": "za",
+      "score": 0,
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_a_2",
+    "group": "Groupe A",
+    "status": "finished",
+    "date": "Ven. 12 juin",
+    "rawDate": "2026-06-12",
+    "time": "04:00",
+    "teamA": {
+      "name": "Corée du Sud",
+      "flag": "kr",
+      "score": 2,
+      "goals": [
+        "Son Heung-min 48'",
+        "Oh Hyeon-gyu 23'"
+      ],
+      "yellows": [
+        "Oh Hyeon-gyu 46'"
+      ],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Tchéquie",
+      "flag": "cz",
+      "score": 1,
+      "goals": [
+        "M. Sadílek 50'"
+      ],
+      "yellows": [
+        "T. Souček 31'",
+        "L. Krejčí 73'"
+      ],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_a_3",
+    "group": "Groupe A",
+    "status": "finished",
+    "date": "Jeu. 18 juin",
+    "rawDate": "2026-06-18",
+    "time": "18:00",
+    "teamA": {
+      "name": "Tchéquie",
+      "flag": "cz",
+      "score": 1,
+      "goals": [
+        "P. Schick 4'"
+      ],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Afrique du Sud",
+      "flag": "za",
+      "score": 1,
+      "goals": [
+        "T. Zwane 30'"
+      ],
+      "yellows": [
+        "E. Makgopa 49'",
+        "P. Tau 3'"
+      ],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_a_4",
+    "group": "Groupe A",
+    "status": "finished",
+    "date": "Ven. 19 juin",
+    "rawDate": "2026-06-19",
+    "time": "03:00",
+    "teamA": {
+      "name": "Mexique",
+      "flag": "mx",
+      "score": 1,
+      "goals": [
+        "H. Lozano 41'"
+      ],
+      "yellows": [
+        "S. Giménez 69'"
+      ],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Corée du Sud",
+      "flag": "kr",
+      "score": 0,
+      "goals": [],
+      "yellows": [
+        "Oh Hyeon-gyu 73'",
+        "Hwang In-beom 65'"
+      ],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_a_5",
+    "group": "Groupe A",
+    "status": "scheduled",
+    "date": "Jeu. 25 juin",
+    "rawDate": "2026-06-25",
+    "time": "03:00",
+    "teamA": {
+      "name": "Tchéquie",
+      "flag": "cz",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Mexique",
+      "flag": "mx",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_a_6",
+    "group": "Groupe A",
+    "status": "scheduled",
+    "date": "Jeu. 25 juin",
+    "rawDate": "2026-06-25",
+    "time": "03:00",
+    "teamA": {
+      "name": "Afrique du Sud",
+      "flag": "za",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Corée du Sud",
+      "flag": "kr",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_b_7",
+    "group": "Groupe B",
+    "status": "finished",
+    "date": "Ven. 12 juin",
+    "rawDate": "2026-06-12",
+    "time": "21:00",
+    "teamA": {
+      "name": "Canada",
+      "flag": "ca",
+      "score": 1,
+      "goals": [
+        "J. David 30'"
+      ],
+      "yellows": [
+        "A. Davies 19'"
+      ],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Bosnie-Herzégovine",
+      "flag": "ba",
+      "score": 1,
+      "goals": [
+        "E. Džeko 87'"
+      ],
+      "yellows": [
+        "E. Mahmić 50'",
+        "M. Pjanic 43'"
+      ],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_b_8",
+    "group": "Groupe B",
+    "status": "finished",
+    "date": "Sam. 13 juin",
+    "rawDate": "2026-06-13",
+    "time": "21:00",
+    "teamA": {
+      "name": "Qatar",
+      "flag": "qa",
+      "score": 1,
+      "goals": [
+        "H. Al-Haydos 33'"
+      ],
+      "yellows": [
+        "Akram Afif 34'"
+      ],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Suisse",
+      "flag": "ch",
+      "score": 1,
+      "goals": [
+        "B. Embolo 43'"
+      ],
+      "yellows": [],
+      "reds": [
+        "G. Xhaka 30'"
+      ],
+      "redCard": true
+    }
+  },
+  {
+    "id": "m_ext_b_9",
+    "group": "Groupe B",
+    "status": "finished",
+    "date": "Jeu. 18 juin",
+    "rawDate": "2026-06-18",
+    "time": "21:00",
+    "teamA": {
+      "name": "Suisse",
+      "flag": "ch",
+      "score": 4,
+      "goals": [
+        "B. Embolo 58'",
+        "X. Shaqiri 58'",
+        "R. Vargas 86'",
+        "B. Embolo 50'"
+      ],
+      "yellows": [
+        "B. Embolo 32'",
+        "J. Manzambi 49'"
+      ],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Bosnie-Herzégovine",
+      "flag": "ba",
+      "score": 1,
+      "goals": [
+        "E. Džeko 6'"
+      ],
+      "yellows": [
+        "E. Mahmić 80'",
+        "M. Pjanic 44'"
+      ],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_b_10",
+    "group": "Groupe B",
+    "status": "finished",
+    "date": "Ven. 19 juin",
+    "rawDate": "2026-06-19",
+    "time": "00:00",
+    "teamA": {
+      "name": "Canada",
+      "flag": "ca",
+      "score": 6,
+      "goals": [
+        "J. David 37'",
+        "J. David 34'",
+        "A. Davies 69'",
+        "A. Davies 82'",
+        "C. Larin 24'",
+        "N. Saliba 6'"
+      ],
+      "yellows": [
+        "T. Buchanan 75'"
+      ],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Qatar",
+      "flag": "qa",
+      "score": 0,
+      "goals": [],
+      "yellows": [
+        "Almoez Ali 26'"
+      ],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_b_11",
+    "group": "Groupe B",
+    "status": "scheduled",
+    "date": "Jeu. 25 juin",
+    "rawDate": "2026-06-25",
+    "time": "01:00",
+    "teamA": {
+      "name": "Bosnie-Herzégovine",
+      "flag": "ba",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Qatar",
+      "flag": "qa",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_b_12",
+    "group": "Groupe B",
+    "status": "scheduled",
+    "date": "Jeu. 25 juin",
+    "rawDate": "2026-06-25",
+    "time": "01:00",
+    "teamA": {
+      "name": "Suisse",
+      "flag": "ch",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Canada",
+      "flag": "ca",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_c_13",
+    "group": "Groupe C",
+    "status": "finished",
+    "date": "Sam. 13 juin",
+    "rawDate": "2026-06-13",
+    "time": "00:00",
+    "teamA": {
+      "name": "Écosse",
+      "flag": "gb-sct",
+      "score": 0,
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Maroc",
+      "flag": "ma",
+      "score": 1,
+      "goals": [
+        "Y. En-Nesyri 41'"
+      ],
+      "yellows": [
+        "B. Diaz 78'"
+      ],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_c_14",
+    "group": "Groupe C",
+    "status": "finished",
+    "date": "Sam. 13 juin",
+    "rawDate": "2026-06-13",
+    "time": "21:00",
+    "teamA": {
+      "name": "Brésil",
+      "flag": "br",
+      "score": 3,
+      "goals": [
+        "Rodrygo 65'",
+        "Rodrygo 84'",
+        "Vinicius Jr 44'"
+      ],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Haïti",
+      "flag": "ht",
+      "score": 0,
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_c_15",
+    "group": "Groupe C",
+    "status": "scheduled",
+    "date": "Sam. 20 juin",
+    "rawDate": "2026-06-20",
+    "time": "00:00",
+    "teamA": {
+      "name": "Écosse",
+      "flag": "gb-sct",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Brésil",
+      "flag": "br",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_c_16",
+    "group": "Groupe C",
+    "status": "scheduled",
+    "date": "Sam. 20 juin",
+    "rawDate": "2026-06-20",
+    "time": "03:00",
+    "teamA": {
+      "name": "Maroc",
+      "flag": "ma",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Haïti",
+      "flag": "ht",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_c_17",
+    "group": "Groupe C",
+    "status": "scheduled",
+    "date": "Jeu. 25 juin",
+    "rawDate": "2026-06-25",
+    "time": "21:00",
+    "teamA": {
+      "name": "Haïti",
+      "flag": "ht",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Écosse",
+      "flag": "gb-sct",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_c_18",
+    "group": "Groupe C",
+    "status": "scheduled",
+    "date": "Jeu. 25 juin",
+    "rawDate": "2026-06-25",
+    "time": "21:00",
+    "teamA": {
+      "name": "Maroc",
+      "flag": "ma",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Brésil",
+      "flag": "br",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_d_19",
+    "group": "Groupe D",
+    "status": "finished",
+    "date": "Sam. 13 juin",
+    "rawDate": "2026-06-13",
+    "time": "03:00",
+    "teamA": {
+      "name": "États-Unis",
+      "flag": "us",
+      "score": 2,
+      "goals": [
+        "F. Balogun 52'",
+        "F. Balogun 1'"
+      ],
+      "yellows": [
+        "T. Weah 13'",
+        "T. Weah 54'"
+      ],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Australie",
+      "flag": "au",
+      "score": 0,
+      "goals": [],
+      "yellows": [
+        "C. Goodwin 21'"
+      ],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_d_20",
+    "group": "Groupe D",
+    "status": "finished",
+    "date": "Dim. 14 juin",
+    "rawDate": "2026-06-14",
+    "time": "00:00",
+    "teamA": {
+      "name": "Turquie",
+      "flag": "tr",
+      "score": 0,
+      "goals": [],
+      "yellows": [
+        "H. Çalhanoğlu 19'"
+      ],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Paraguay",
+      "flag": "py",
+      "score": 1,
+      "goals": [
+        "M. Almirón 55'"
+      ],
+      "yellows": [
+        "J. Enciso 2'"
+      ],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_d_21",
+    "group": "Groupe D",
+    "status": "finished",
+    "date": "Ven. 19 juin",
+    "rawDate": "2026-06-19",
+    "time": "21:00",
+    "teamA": {
+      "name": "Turquie",
+      "flag": "tr",
+      "score": 1,
+      "goals": [
+        "K. Aktürkoğlu 58'"
+      ],
+      "yellows": [
+        "A. Güler 1'",
+        "H. Çalhanoğlu 19'"
+      ],
+      "reds": [
+        "B. Yılmaz 72'"
+      ],
+      "redCard": true
+    },
+    "teamB": {
+      "name": "États-Unis",
+      "flag": "us",
+      "score": 1,
+      "goals": [
+        "W. McKennie 66'"
+      ],
+      "yellows": [
+        "W. McKennie 6'",
+        "W. McKennie 6'"
+      ],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_d_22",
+    "group": "Groupe D",
+    "status": "finished",
+    "date": "Ven. 19 juin",
+    "rawDate": "2026-06-19",
+    "time": "18:00",
+    "teamA": {
+      "name": "Paraguay",
+      "flag": "py",
+      "score": 2,
+      "goals": [
+        "R. Sosa 46'",
+        "J. Enciso 36'"
+      ],
+      "yellows": [],
+      "reds": [
+        "J. Enciso 45'"
+      ],
+      "redCard": true
+    },
+    "teamB": {
+      "name": "Australie",
+      "flag": "au",
+      "score": 1,
+      "goals": [
+        "H. Souttar 47'"
+      ],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_d_23",
+    "group": "Groupe D",
+    "status": "scheduled",
+    "date": "Ven. 26 juin",
+    "rawDate": "2026-06-26",
+    "time": "00:00",
+    "teamA": {
+      "name": "Australie",
+      "flag": "au",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Turquie",
+      "flag": "tr",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_d_24",
+    "group": "Groupe D",
+    "status": "scheduled",
+    "date": "Ven. 26 juin",
+    "rawDate": "2026-06-26",
+    "time": "00:00",
+    "teamA": {
+      "name": "Paraguay",
+      "flag": "py",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "États-Unis",
+      "flag": "us",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_e_25",
+    "group": "Groupe E",
+    "status": "finished",
+    "date": "Dim. 14 juin",
+    "rawDate": "2026-06-14",
+    "time": "22:00",
+    "teamA": {
+      "name": "Allemagne",
+      "flag": "de",
+      "score": 2,
+      "goals": [
+        "F. Wirtz 48'",
+        "J. Musiala 75'"
+      ],
+      "yellows": [
+        "N. Füllkrug 58'"
+      ],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Côte d'Ivoire",
+      "flag": "ci",
+      "score": 1,
+      "goals": [
+        "S. Haller 16'"
+      ],
+      "yellows": [
+        "S. Adingra 42'"
+      ],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_e_26",
+    "group": "Groupe E",
+    "status": "finished",
+    "date": "Lun. 15 juin",
+    "rawDate": "2026-06-15",
+    "time": "01:00",
+    "teamA": {
+      "name": "Équateur",
+      "flag": "ec",
+      "score": 2,
+      "goals": [
+        "P. Estupiñán 29'",
+        "E. Valencia 55'"
+      ],
+      "yellows": [
+        "E. Valencia 9'"
+      ],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Curaçao",
+      "flag": "cw",
+      "score": 0,
+      "goals": [],
+      "yellows": [
+        "G. Kastaneer 89'",
+        "R. Martina 8'"
+      ],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_e_27",
+    "group": "Groupe E",
+    "status": "scheduled",
+    "date": "Sam. 20 juin",
+    "rawDate": "2026-06-20",
+    "time": "22:00",
+    "teamA": {
+      "name": "Curaçao",
+      "flag": "cw",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Côte d'Ivoire",
+      "flag": "ci",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_e_28",
+    "group": "Groupe E",
+    "status": "scheduled",
+    "date": "Dim. 21 juin",
+    "rawDate": "2026-06-21",
+    "time": "01:00",
+    "teamA": {
+      "name": "Équateur",
+      "flag": "ec",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Allemagne",
+      "flag": "de",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_e_29",
+    "group": "Groupe E",
+    "status": "scheduled",
+    "date": "Ven. 26 juin",
+    "rawDate": "2026-06-26",
+    "time": "22:00",
+    "teamA": {
+      "name": "Côte d'Ivoire",
+      "flag": "ci",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Équateur",
+      "flag": "ec",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_e_30",
+    "group": "Groupe E",
+    "status": "scheduled",
+    "date": "Ven. 26 juin",
+    "rawDate": "2026-06-26",
+    "time": "22:00",
+    "teamA": {
+      "name": "Curaçao",
+      "flag": "cw",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Allemagne",
+      "flag": "de",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_f_31",
+    "group": "Groupe F",
+    "status": "finished",
+    "date": "Lun. 15 juin",
+    "rawDate": "2026-06-15",
+    "time": "06:00",
+    "teamA": {
+      "name": "Pays-Bas",
+      "flag": "nl",
+      "score": 2,
+      "goals": [
+        "D. Malen 51'",
+        "D. Malen 42'"
+      ],
+      "yellows": [
+        "D. Malen 50'"
+      ],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Suède",
+      "flag": "se",
+      "score": 1,
+      "goals": [
+        "V. Gyökeres 66'"
+      ],
+      "yellows": [
+        "V. Gyökeres 82'"
+      ],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_f_32",
+    "group": "Groupe F",
+    "status": "finished",
+    "date": "Dim. 14 juin",
+    "rawDate": "2026-06-14",
+    "time": "21:00",
+    "teamA": {
+      "name": "Tunisie",
+      "flag": "tn",
+      "score": 0,
+      "goals": [],
+      "yellows": [
+        "E. Skhiri 28'"
+      ],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Japon",
+      "flag": "jp",
+      "score": 2,
+      "goals": [
+        "T. Kubo 21'",
+        "K. Mitoma 34'"
+      ],
+      "yellows": [
+        "K. Mitoma 38'",
+        "A. Ueda 53'"
+      ],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_f_33",
+    "group": "Groupe F",
+    "status": "scheduled",
+    "date": "Dim. 21 juin",
+    "rawDate": "2026-06-21",
+    "time": "06:00",
+    "teamA": {
+      "name": "Japon",
+      "flag": "jp",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Suède",
+      "flag": "se",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_f_34",
+    "group": "Groupe F",
+    "status": "scheduled",
+    "date": "Sam. 20 juin",
+    "rawDate": "2026-06-20",
+    "time": "21:00",
+    "teamA": {
+      "name": "Tunisie",
+      "flag": "tn",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Pays-Bas",
+      "flag": "nl",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_f_35",
+    "group": "Groupe F",
+    "status": "scheduled",
+    "date": "Sam. 27 juin",
+    "rawDate": "2026-06-27",
+    "time": "03:00",
+    "teamA": {
+      "name": "Suède",
+      "flag": "se",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Tunisie",
+      "flag": "tn",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_f_36",
+    "group": "Groupe F",
+    "status": "scheduled",
+    "date": "Sam. 27 juin",
+    "rawDate": "2026-06-27",
+    "time": "03:00",
+    "teamA": {
+      "name": "Japon",
+      "flag": "jp",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Pays-Bas",
+      "flag": "nl",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_g_37",
+    "group": "Groupe G",
+    "status": "finished",
+    "date": "Lun. 15 juin",
+    "rawDate": "2026-06-15",
+    "time": "21:00",
+    "teamA": {
+      "name": "Belgique",
+      "flag": "be",
+      "score": 1,
+      "goals": [
+        "J. Doku 36'"
+      ],
+      "yellows": [
+        "L. Trossard 88'"
+      ],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Égypte",
+      "flag": "eg",
+      "score": 1,
+      "goals": [
+        "M. Mohamed 55'"
+      ],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_g_38",
+    "group": "Groupe G",
+    "status": "finished",
+    "date": "Mar. 16 juin",
+    "rawDate": "2026-06-16",
+    "time": "00:00",
+    "teamA": {
+      "name": "Iran",
+      "flag": "ir",
+      "score": 2,
+      "goals": [
+        "S. Azmoun 51'",
+        "M. Taremi 28'"
+      ],
+      "yellows": [
+        "A. Jahanbakhsh 14'"
+      ],
+      "reds": [
+        "S. Azmoun 69'"
+      ],
+      "redCard": true
+    },
+    "teamB": {
+      "name": "Nouvelle-Zélande",
+      "flag": "nz",
+      "score": 2,
+      "goals": [
+        "C. Wood 66'",
+        "C. Wood 33'"
+      ],
+      "yellows": [
+        "K. Barbarouses 36'",
+        "K. Barbarouses 50'"
+      ],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_g_39",
+    "group": "Groupe G",
+    "status": "scheduled",
+    "date": "Dim. 21 juin",
+    "rawDate": "2026-06-21",
+    "time": "21:00",
+    "teamA": {
+      "name": "Belgique",
+      "flag": "be",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Iran",
+      "flag": "ir",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_g_40",
+    "group": "Groupe G",
+    "status": "scheduled",
+    "date": "Lun. 22 juin",
+    "rawDate": "2026-06-22",
+    "time": "00:00",
+    "teamA": {
+      "name": "Nouvelle-Zélande",
+      "flag": "nz",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Égypte",
+      "flag": "eg",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_g_41",
+    "group": "Groupe G",
+    "status": "scheduled",
+    "date": "Sam. 27 juin",
+    "rawDate": "2026-06-27",
+    "time": "03:00",
+    "teamA": {
+      "name": "Égypte",
+      "flag": "eg",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Iran",
+      "flag": "ir",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_g_42",
+    "group": "Groupe G",
+    "status": "scheduled",
+    "date": "Sam. 27 juin",
+    "rawDate": "2026-06-27",
+    "time": "03:00",
+    "teamA": {
+      "name": "Nouvelle-Zélande",
+      "flag": "nz",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Belgique",
+      "flag": "be",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_h_43",
+    "group": "Groupe H",
+    "status": "finished",
+    "date": "Mar. 16 juin",
+    "rawDate": "2026-06-16",
+    "time": "06:00",
+    "teamA": {
+      "name": "Espagne",
+      "flag": "es",
+      "score": 2,
+      "goals": [
+        "Dani Olmo 85'",
+        "A. Morata 47'"
+      ],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Cap-Vert",
+      "flag": "cv",
+      "score": 0,
+      "goals": [],
+      "yellows": [
+        "Bebé 30'",
+        "Ryan Mendes 52'"
+      ],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_h_44",
+    "group": "Groupe H",
+    "status": "finished",
+    "date": "Lun. 15 juin",
+    "rawDate": "2026-06-15",
+    "time": "21:00",
+    "teamA": {
+      "name": "Arabie saoudite",
+      "flag": "sa",
+      "score": 0,
+      "goals": [],
+      "yellows": [
+        "Saleh Al-Shehri 75'",
+        "Firas Al-Buraikan 47'"
+      ],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Uruguay",
+      "flag": "uy",
+      "score": 2,
+      "goals": [
+        "R. Bentancur 54'",
+        "R. Bentancur 18'"
+      ],
+      "yellows": [
+        "R. Bentancur 32'",
+        "R. Bentancur 30'"
+      ],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_h_45",
+    "group": "Groupe H",
+    "status": "scheduled",
+    "date": "Lun. 22 juin",
+    "rawDate": "2026-06-22",
+    "time": "06:00",
+    "teamA": {
+      "name": "Uruguay",
+      "flag": "uy",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Cap-Vert",
+      "flag": "cv",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_h_46",
+    "group": "Groupe H",
+    "status": "scheduled",
+    "date": "Dim. 21 juin",
+    "rawDate": "2026-06-21",
+    "time": "21:00",
+    "teamA": {
+      "name": "Espagne",
+      "flag": "es",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Arabie saoudite",
+      "flag": "sa",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_h_47",
+    "group": "Groupe H",
+    "status": "scheduled",
+    "date": "Dim. 28 juin",
+    "rawDate": "2026-06-28",
+    "time": "00:00",
+    "teamA": {
+      "name": "Cap-Vert",
+      "flag": "cv",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Arabie saoudite",
+      "flag": "sa",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_h_48",
+    "group": "Groupe H",
+    "status": "scheduled",
+    "date": "Dim. 28 juin",
+    "rawDate": "2026-06-28",
+    "time": "00:00",
+    "teamA": {
+      "name": "Uruguay",
+      "flag": "uy",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Espagne",
+      "flag": "es",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_i_49",
+    "group": "Groupe I",
+    "status": "finished",
+    "date": "Mar. 16 juin",
+    "rawDate": "2026-06-16",
+    "time": "21:00",
+    "teamA": {
+      "name": "France",
+      "flag": "fr",
+      "score": 3,
+      "goals": [
+        "O. Dembélé 33'",
+        "A. Griezmann 53'",
+        "A. Griezmann 50'"
+      ],
+      "yellows": [
+        "K. Mbappé 23'"
+      ],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Sénégal",
+      "flag": "sn",
+      "score": 1,
+      "goals": [
+        "N. Jackson 17'"
+      ],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_i_50",
+    "group": "Groupe I",
+    "status": "finished",
+    "date": "Mer. 17 juin",
+    "rawDate": "2026-06-17",
+    "time": "00:00",
+    "teamA": {
+      "name": "Irak",
+      "flag": "iq",
+      "score": 0,
+      "goals": [],
+      "yellows": [
+        "Ali Jasim 77'"
+      ],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Norvège",
+      "flag": "no",
+      "score": 2,
+      "goals": [
+        "A. Sørloth 59'",
+        "M. Ødegaard 76'"
+      ],
+      "yellows": [
+        "O. Bobb 78'",
+        "E. Haaland 56'"
+      ],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_i_51",
+    "group": "Groupe I",
+    "status": "scheduled",
+    "date": "Mar. 23 juin",
+    "rawDate": "2026-06-23",
+    "time": "00:00",
+    "teamA": {
+      "name": "France",
+      "flag": "fr",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Norvège",
+      "flag": "no",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_i_52",
+    "group": "Groupe I",
+    "status": "scheduled",
+    "date": "Mar. 23 juin",
+    "rawDate": "2026-06-23",
+    "time": "03:00",
+    "teamA": {
+      "name": "Sénégal",
+      "flag": "sn",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Irak",
+      "flag": "iq",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_i_53",
+    "group": "Groupe I",
+    "status": "scheduled",
+    "date": "Dim. 28 juin",
+    "rawDate": "2026-06-28",
+    "time": "00:00",
+    "teamA": {
+      "name": "Norvège",
+      "flag": "no",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Sénégal",
+      "flag": "sn",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_i_54",
+    "group": "Groupe I",
+    "status": "scheduled",
+    "date": "Dim. 28 juin",
+    "rawDate": "2026-06-28",
+    "time": "00:00",
+    "teamA": {
+      "name": "Irak",
+      "flag": "iq",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "France",
+      "flag": "fr",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_j_55",
+    "group": "Groupe J",
+    "status": "finished",
+    "date": "Mer. 17 juin",
+    "rawDate": "2026-06-17",
+    "time": "04:00",
+    "teamA": {
+      "name": "Argentine",
+      "flag": "ar",
+      "score": 3,
+      "goals": [
+        "A. Mac Allister 64'",
+        "E. Fernández 9'",
+        "L. Martínez 66'"
+      ],
+      "yellows": [
+        "A. Mac Allister 90'"
+      ],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Algérie",
+      "flag": "dz",
+      "score": 0,
+      "goals": [],
+      "yellows": [
+        "H. Aouar 83'"
+      ],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_j_56",
+    "group": "Groupe J",
+    "status": "finished",
+    "date": "Mar. 16 juin",
+    "rawDate": "2026-06-16",
+    "time": "19:00",
+    "teamA": {
+      "name": "Autriche",
+      "flag": "at",
+      "score": 1,
+      "goals": [
+        "M. Gregoritsch 10'"
+      ],
+      "yellows": [
+        "C. Baumgartner 42'"
+      ],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Jordanie",
+      "flag": "jo",
+      "score": 0,
+      "goals": [],
+      "yellows": [
+        "Yazan Al-Naimat 41'",
+        "Yazan Al-Naimat 11'"
+      ],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_j_57",
+    "group": "Groupe J",
+    "status": "scheduled",
+    "date": "Lun. 22 juin",
+    "rawDate": "2026-06-22",
+    "time": "22:00",
+    "teamA": {
+      "name": "Argentine",
+      "flag": "ar",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Autriche",
+      "flag": "at",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_j_58",
+    "group": "Groupe J",
+    "status": "scheduled",
+    "date": "Lun. 22 juin",
+    "rawDate": "2026-06-22",
+    "time": "19:00",
+    "teamA": {
+      "name": "Algérie",
+      "flag": "dz",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Jordanie",
+      "flag": "jo",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_j_59",
+    "group": "Groupe J",
+    "status": "scheduled",
+    "date": "Dim. 28 juin",
+    "rawDate": "2026-06-28",
+    "time": "04:00",
+    "teamA": {
+      "name": "Jordanie",
+      "flag": "jo",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Argentine",
+      "flag": "ar",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_j_60",
+    "group": "Groupe J",
+    "status": "scheduled",
+    "date": "Dim. 28 juin",
+    "rawDate": "2026-06-28",
+    "time": "04:00",
+    "teamA": {
+      "name": "Algérie",
+      "flag": "dz",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Autriche",
+      "flag": "at",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_k_61",
+    "group": "Groupe K",
+    "status": "finished",
+    "date": "Mer. 17 juin",
+    "rawDate": "2026-06-17",
+    "time": "21:00",
+    "teamA": {
+      "name": "Portugal",
+      "flag": "pt",
+      "score": 2,
+      "goals": [
+        "Bernardo Silva 44'",
+        "Bruno Fernandes 68'"
+      ],
+      "yellows": [
+        "Cristiano Ronaldo 84'"
+      ],
+      "reds": []
+    },
+    "teamB": {
+      "name": "RD Congo",
+      "flag": "cd",
+      "score": 1,
+      "goals": [
+        "Chancel Mbemba 70'"
+      ],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_k_62",
+    "group": "Groupe K",
+    "status": "finished",
+    "date": "Jeu. 18 juin",
+    "rawDate": "2026-06-18",
+    "time": "00:00",
+    "teamA": {
+      "name": "Ouzbékistan",
+      "flag": "uz",
+      "score": 1,
+      "goals": [
+        "A. Fayzullaev 65'"
+      ],
+      "yellows": [
+        "O. Urunov 57'",
+        "A. Fayzullaev 69'"
+      ],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Colombie",
+      "flag": "co",
+      "score": 3,
+      "goals": [
+        "Luis Díaz 39'",
+        "J. Arias 69'",
+        "Luis Díaz 83'"
+      ],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_k_63",
+    "group": "Groupe K",
+    "status": "scheduled",
+    "date": "Mer. 24 juin",
+    "rawDate": "2026-06-24",
+    "time": "00:00",
+    "teamA": {
+      "name": "Colombie",
+      "flag": "co",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Portugal",
+      "flag": "pt",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_k_64",
+    "group": "Groupe K",
+    "status": "scheduled",
+    "date": "Mar. 23 juin",
+    "rawDate": "2026-06-23",
+    "time": "21:00",
+    "teamA": {
+      "name": "RD Congo",
+      "flag": "cd",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Ouzbékistan",
+      "flag": "uz",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_k_65",
+    "group": "Groupe K",
+    "status": "scheduled",
+    "date": "Sam. 27 juin",
+    "rawDate": "2026-06-27",
+    "time": "18:00",
+    "teamA": {
+      "name": "Ouzbékistan",
+      "flag": "uz",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Portugal",
+      "flag": "pt",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_k_66",
+    "group": "Groupe K",
+    "status": "scheduled",
+    "date": "Sam. 27 juin",
+    "rawDate": "2026-06-27",
+    "time": "18:00",
+    "teamA": {
+      "name": "Colombie",
+      "flag": "co",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "RD Congo",
+      "flag": "cd",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_l_67",
+    "group": "Groupe L",
+    "status": "finished",
+    "date": "Jeu. 18 juin",
+    "rawDate": "2026-06-18",
+    "time": "03:00",
+    "teamA": {
+      "name": "Angleterre",
+      "flag": "gb-eng",
+      "score": 4,
+      "goals": [
+        "C. Palmer 42'",
+        "H. Kane 10'",
+        "J. Bellingham 59'",
+        "C. Palmer 59'"
+      ],
+      "yellows": [
+        "H. Kane 55'",
+        "C. Palmer 36'"
+      ],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Croatie",
+      "flag": "hr",
+      "score": 2,
+      "goals": [
+        "M. Kovačić 11'",
+        "I. Perišić 25'"
+      ],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_l_68",
+    "group": "Groupe L",
+    "status": "finished",
+    "date": "Mer. 17 juin",
+    "rawDate": "2026-06-17",
+    "time": "18:00",
+    "teamA": {
+      "name": "Ghana",
+      "flag": "gh",
+      "score": 1,
+      "goals": [
+        "A. Semenyo 10'"
+      ],
+      "yellows": [
+        "M. Kudus 49'"
+      ],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Panama",
+      "flag": "pa",
+      "score": 0,
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_l_69",
+    "group": "Groupe L",
+    "status": "scheduled",
+    "date": "Mer. 24 juin",
+    "rawDate": "2026-06-24",
+    "time": "03:00",
+    "teamA": {
+      "name": "Angleterre",
+      "flag": "gb-eng",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Ghana",
+      "flag": "gh",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_l_70",
+    "group": "Groupe L",
+    "status": "scheduled",
+    "date": "Mar. 23 juin",
+    "rawDate": "2026-06-23",
+    "time": "18:00",
+    "teamA": {
+      "name": "Panama",
+      "flag": "pa",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Croatie",
+      "flag": "hr",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_l_71",
+    "group": "Groupe L",
+    "status": "scheduled",
+    "date": "Sam. 27 juin",
+    "rawDate": "2026-06-27",
+    "time": "18:00",
+    "teamA": {
+      "name": "Croatie",
+      "flag": "hr",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Ghana",
+      "flag": "gh",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  },
+  {
+    "id": "m_ext_l_72",
+    "group": "Groupe L",
+    "status": "scheduled",
+    "date": "Sam. 27 juin",
+    "rawDate": "2026-06-27",
+    "time": "18:00",
+    "teamA": {
+      "name": "Panama",
+      "flag": "pa",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    },
+    "teamB": {
+      "name": "Angleterre",
+      "flag": "gb-eng",
+      "goals": [],
+      "yellows": [],
+      "reds": []
+    }
+  }
+]

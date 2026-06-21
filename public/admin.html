@@ -1,0 +1,1677 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administration — Mondial Score</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Outfit', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body {
+      background-color: #f8f9fa;
+      color: #202124;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #e5e7eb;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #9ca3af;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #6b7280;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans">
+
+  <!-- Header -->
+  <header class="sticky top-0 z-50 border-b border-[#e5e7eb] bg-white/95 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="bg-blue-600 text-white p-2 rounded-lg flex items-center justify-center">
+          <i data-lucide="sliders" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-[#202124] flex items-center gap-2">
+            <span>Mondial Score</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200">Admin</span>
+          </h1>
+          <p class="text-xs text-[#5f6368]">Gestion en direct des matchs et des scores</p>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="confirmReset()" class="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+          <span>Réinitialiser</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-6 sm:px-6 lg:py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+    
+    <!-- Toast Notification Banner -->
+    <div id="toast" class="fixed bottom-5 right-5 transform translate-y-10 opacity-0 pointer-events-none transition-all duration-300 z-50 bg-emerald-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 border border-emerald-500">
+      <i id="toast-icon" data-lucide="check-circle" class="w-5 h-5"></i>
+      <span id="toast-text">Action effectuée</span>
+    </div>
+
+    <!-- LEFT COLUMN: Add match form & API simulator (4 cols) -->
+    <section class="lg:col-span-4 flex flex-col gap-6">
+      
+      <!-- CARD 1: Add match form -->
+      <div class="bg-white rounded-xl border border-[#e5e7eb] p-5 shadow-sm">
+        <h2 class="text-lg font-semibold text-[#202124] mb-4 flex items-center gap-2">
+          <i id="form-icon" data-lucide="plus-circle" class="text-blue-600 w-5 h-5"></i>
+          <span id="form-title">Ajouter un Match</span>
+        </h2>
+        
+        <form id="add-match-form" onsubmit="handleAddMatch(event)" class="space-y-4">
+          <!-- Group Selection -->
+          <div>
+            <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5" for="group">Groupe</label>
+            <select id="group" required class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-[#202124] focus:outline-none focus:border-blue-500">
+              <option value="A">Groupe A</option>
+              <option value="B">Groupe B</option>
+              <option value="C">Groupe C</option>
+              <option value="D">Groupe D</option>
+              <option value="E">Groupe E</option>
+              <option value="F">Groupe F</option>
+              <option value="G">Groupe G</option>
+              <option value="H">Groupe H</option>
+              <option value="I">Groupe I</option>
+              <option value="J">Groupe J</option>
+              <option value="K">Groupe K</option>
+              <option value="L">Groupe L</option>
+            </select>
+          </div>
+
+          <!-- Team A Grid -->
+          <div class="border-t border-gray-200 pt-3">
+            <h3 class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Équipe A (Domicile)</h3>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] text-[#5f6368] mb-1" for="teamA-select">Sélectionner</label>
+                <select id="teamA-select" onchange="handleTeamSelect('A')" class="w-full bg-white border border-gray-300 rounded-lg px-2 py-1.5 text-xs text-[#202124] focus:outline-none focus:border-blue-500">
+                  <!-- Teams will be filled by JS -->
+                </select>
+              </div>
+              <div>
+                <label class="block text-[10px] text-[#5f6368] mb-1" for="teamA-custom-name">Nom personnalisé</label>
+                <input id="teamA-custom-name" type="text" placeholder="Mexique" required class="w-full bg-white border border-gray-300 rounded-lg px-2 py-1.5 text-xs text-[#202124] focus:outline-none focus:border-blue-500">
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 mt-2">
+              <div>
+                <label class="block text-[10px] text-[#5f6368] mb-1" for="teamA-custom-flag">Code Drapeau (2 lettres)</label>
+                <input id="teamA-custom-flag" type="text" placeholder="mx" required class="w-full bg-white border border-gray-300 rounded-lg px-2 py-1.5 text-xs text-[#202124] focus:outline-none focus:border-blue-500" oninput="updateFlagPreview('A')">
+              </div>
+              <div class="flex items-end justify-center pb-1">
+                <img id="teamA-flag-preview" src="https://flagcdn.com/w40/mx.png" width="30" height="20" class="rounded object-cover ring-1 ring-black/5 hidden" alt="">
+              </div>
+            </div>
+          </div>
+
+          <!-- Team B Grid -->
+          <div class="border-t border-gray-200 pt-3">
+            <h3 class="text-xs font-bold text-amber-600 uppercase tracking-wider mb-2">Équipe B (Extérieur)</h3>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] text-[#5f6368] mb-1" for="teamB-select">Sélectionner</label>
+                <select id="teamB-select" onchange="handleTeamSelect('B')" class="w-full bg-white border border-gray-300 rounded-lg px-2 py-1.5 text-xs text-[#202124] focus:outline-none focus:border-blue-500">
+                  <!-- Teams will be filled by JS -->
+                </select>
+              </div>
+              <div>
+                <label class="block text-[10px] text-[#5f6368] mb-1" for="teamB-custom-name">Nom personnalisé</label>
+                <input id="teamB-custom-name" type="text" placeholder="Corée du Sud" required class="w-full bg-white border border-gray-300 rounded-lg px-2 py-1.5 text-xs text-[#202124] focus:outline-none focus:border-blue-500">
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 mt-2">
+              <div>
+                <label class="block text-[10px] text-[#5f6368] mb-1" for="teamB-custom-flag">Code Drapeau (2 lettres)</label>
+                <input id="teamB-custom-flag" type="text" placeholder="kr" required class="w-full bg-white border border-gray-300 rounded-lg px-2 py-1.5 text-xs text-[#202124] focus:outline-none focus:border-blue-500" oninput="updateFlagPreview('B')">
+              </div>
+              <div class="flex items-end justify-center pb-1">
+                <img id="teamB-flag-preview" src="https://flagcdn.com/w40/kr.png" width="30" height="20" class="rounded object-cover ring-1 ring-black/5 hidden" alt="">
+              </div>
+            </div>
+          </div>
+
+          <!-- Schedule Grid -->
+          <div class="border-t border-gray-200 pt-3 grid grid-cols-3 gap-2">
+            <div>
+              <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5" for="day">Jour</label>
+              <select id="day" required class="w-full bg-white border border-gray-300 rounded-lg px-2 py-2 text-xs text-[#202124] focus:outline-none focus:border-blue-500">
+                <option value="yesterday">Hier</option>
+                <option value="today" selected>Aujourd'hui</option>
+                <option value="tomorrow">Demain</option>
+                <option value="later">Plus tard</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5" for="match-date-input">Date</label>
+              <input id="match-date-input" type="date" class="w-full bg-white border border-gray-300 rounded-lg px-2 py-2 text-xs text-[#202124] focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5" for="match-time-input">Heure</label>
+              <input id="match-time-input" type="time" class="w-full bg-white border border-gray-300 rounded-lg px-2 py-2 text-xs text-[#202124] focus:outline-none focus:border-blue-500">
+            </div>
+          </div>
+
+          <!-- Match Status -->
+          <div class="border-t border-gray-200 pt-3">
+            <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5" for="status">Statut du Match</label>
+            <select id="status" onchange="toggleScoreInputs()" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-[#202124] focus:outline-none focus:border-blue-500">
+              <option value="scheduled">Programmé (Non commencé)</option>
+              <option value="finished">Terminé (Afficher les scores)</option>
+            </select>
+          </div>
+
+          <!-- Scores (Hidden if scheduled) -->
+          <div id="score-inputs-container" class="hidden border-t border-gray-200 pt-3 grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5" for="scoreA">Score Équipe A</label>
+              <input id="scoreA" type="number" min="0" value="0" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-[#202124] focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5" for="scoreB">Score Équipe B</label>
+              <input id="scoreB" type="number" min="0" value="0" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-[#202124] focus:outline-none focus:border-blue-500">
+            </div>
+          </div>
+
+          <div class="flex gap-2 mt-4">
+            <button type="submit" id="submit-button" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2.5 font-medium transition hover:shadow-lg hover:shadow-blue-500/25 flex items-center justify-center gap-2 cursor-pointer">
+              <i id="submit-btn-icon" data-lucide="plus" class="w-4 h-4"></i>
+              <span id="submit-btn-text">Créer le match</span>
+            </button>
+            <button type="button" id="cancel-edit-btn" onclick="cancelEditMatch()" class="hidden px-4 py-2.5 text-sm font-medium bg-white hover:bg-gray-100 border border-gray-300 text-gray-700 rounded-lg transition">
+              Annuler
+            </button>
+          </div>
+        </form>
+      </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT COLUMN: Matches management list (8 cols) -->
+    <section class="lg:col-span-8 flex flex-col gap-6">
+      
+      <!-- Filters and search bar -->
+      <div class="bg-white rounded-xl border border-[#e5e7eb] p-4 shadow-sm flex flex-col sm:flex-row gap-4 items-center justify-between">
+        <!-- Search bar -->
+        <div class="relative w-full sm:w-72">
+          <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-slate-450"></i>
+          <input id="search-input" oninput="filterAndRenderMatches()" type="text" placeholder="Rechercher une équipe..." class="w-full bg-white border border-gray-300 rounded-lg pl-9 pr-4 py-2 text-sm text-[#202124] focus:outline-none focus:border-blue-500">
+        </div>
+        
+        <!-- Filter buttons -->
+        <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+          <select id="filter-day" onchange="filterAndRenderMatches()" class="bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-[#202124] focus:outline-none">
+            <option value="all">Tous les jours</option>
+            <option value="yesterday">Hier</option>
+            <option value="today">Aujourd'hui</option>
+            <option value="tomorrow">Demain</option>
+            <option value="later">Plus tard</option>
+          </select>
+
+          <select id="filter-group" onchange="filterAndRenderMatches()" class="bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-[#202124] focus:outline-none">
+            <option value="all">Tous les groupes</option>
+            <option value="A">Groupe A</option>
+            <option value="B">Groupe B</option>
+            <option value="C">Groupe C</option>
+            <option value="D">Groupe D</option>
+            <option value="E">Groupe E</option>
+            <option value="F">Groupe F</option>
+            <option value="G">Groupe G</option>
+            <option value="H">Groupe H</option>
+            <option value="I">Groupe I</option>
+            <option value="J">Groupe J</option>
+            <option value="K">Groupe K</option>
+            <option value="L">Groupe L</option>
+          </select>
+          
+          <div class="text-xs text-[#5f6368] flex items-center ml-auto py-1">
+            Total : <span id="match-count" class="font-bold text-[#202124] ml-1">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Match list grid -->
+      <div id="matches-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Match Cards will be rendered dynamically by JS -->
+      </div>
+      
+      <!-- Empty state -->
+      <div id="empty-state" class="hidden bg-white rounded-xl border border-[#e5e7eb] p-12 text-center text-slate-500">
+        <i data-lucide="calendar-x" class="w-12 h-12 mx-auto mb-3 text-slate-350"></i>
+        <h3 class="font-semibold text-[#202124] mb-1">Aucun match trouvé</h3>
+        <p class="text-sm text-slate-500">Essayez de modifier vos filtres ou ajoutez un nouveau match.</p>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- Confirm reset dialog -->
+  <div id="reset-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/55 backdrop-blur-sm hidden">
+    <div class="bg-white border border-[#e5e7eb] rounded-xl max-w-md w-full p-6 shadow-xl animate-in zoom-in-95 duration-200">
+      <div class="flex items-center gap-3 text-red-650 mb-4">
+        <i data-lucide="alert-triangle" class="w-6 h-6 shrink-0 text-red-555"></i>
+        <h3 class="text-lg font-bold text-[#202124]">Réinitialiser les données ?</h3>
+      </div>
+      <p class="text-sm text-[#5f6368] mb-6 leading-relaxed">
+        Cette action va écraser toutes vos modifications et restaurer la liste des matchs d'origine de la Coupe du Monde. Cette opération est irréversible.
+      </p>
+      <div class="flex justify-end gap-3">
+        <button onclick="closeResetModal()" class="px-4 py-2 text-sm font-medium bg-white hover:bg-gray-100 border border-gray-300 text-gray-700 rounded-lg transition">Annuler</button>
+        <button onclick="resetToDefaults()" class="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-500 text-white rounded-lg transition hover:shadow-lg hover:shadow-red-500/25">Réinitialiser</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="border-t border-[#e5e7eb] bg-white py-4 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
+      Mondial Score Admin &copy; 2026. Toutes les modifications sont stockées en temps réel dans Supabase et synchronisées localement.
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module">
+    const supabaseUrl = "https://nvddccrdlesgpddzwacq.supabase.co";
+    const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52ZGRjY3JkbGVzZ3BkZHp3YWNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwMjg2ODQsImV4cCI6MjA5NzYwNDY4NH0.uI4Xg3mjxoo0EYMMcg0UsV7B0hGJAF4Cf7L2H222mAM";
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+    let editingMatchId = null;
+
+    const mapSupabaseRowToMatch = (row) => ({
+      id: row.id,
+      group: row.group_name,
+      day: row.day,
+      status: row.status,
+      date: row.date || undefined,
+      time: row.time || undefined,
+      rawDate: row.raw_date || undefined,
+      teamA: row.team_a,
+      teamB: row.team_b
+    });
+
+    const mapMatchToSupabaseRow = (match) => ({
+      id: match.id,
+      group_name: match.group,
+      day: match.day,
+      status: match.status,
+      date: match.date || null,
+      time: match.time || null,
+      raw_date: match.rawDate || null,
+      team_a: match.teamA,
+      team_b: match.teamB
+    });
+
+    async function saveMatchToSupabase(match) {
+      try {
+        const row = mapMatchToSupabaseRow(match);
+        const { error } = await supabaseClient.from("matches").upsert([row]);
+        if (error) throw error;
+      } catch (err) {
+        console.error("Error writing document: ", err);
+        showToast(`❌ Erreur base de données : ${err.message || err}`);
+      }
+    }
+
+    async function deleteMatchFromSupabase(matchId) {
+      try {
+        const { error } = await supabaseClient.from("matches").delete().eq("id", matchId);
+        if (error) throw error;
+      } catch (err) {
+        console.error("Error deleting document: ", err);
+        showToast(`❌ Erreur base de données : ${err.message || err}`);
+      }
+    }
+
+    async function saveAllMatchesToSupabase(allMatches) {
+      try {
+        const rows = allMatches.map(mapMatchToSupabaseRow);
+        const { error } = await supabaseClient.from("matches").upsert(rows);
+        if (error) throw error;
+      } catch (err) {
+        console.error("Error in batch write: ", err);
+        showToast(`❌ Erreur base de données : ${err.message || err}`);
+      }
+    }
+
+    async function loadMatchesFromSupabase() {
+      try {
+        const { data, error } = await supabaseClient.from("matches").select("*");
+        if (error) throw error;
+        return (data || []).map(mapSupabaseRowToMatch);
+      } catch (err) {
+        console.error("Error reading matches: ", err);
+        showToast(`❌ Erreur lecture base de données : ${err.message || err}`);
+        return null;
+      }
+    }
+
+    // Initial global teams dataset (2026 World Cup teams)
+    const PREDEFINED_TEAMS = [
+      { name: "Mexique", flag: "mx" },
+      { name: "Afrique du Sud", flag: "za" },
+      { name: "Corée du Sud", flag: "kr" },
+      { name: "Tchéquie", flag: "cz" },
+      { name: "Canada", flag: "ca" },
+      { name: "Bosnie-Herzégovine", flag: "ba" },
+      { name: "Qatar", flag: "qa" },
+      { name: "Suisse", flag: "ch" },
+      { name: "Écosse", flag: "gb-sct" },
+      { name: "Maroc", flag: "ma" },
+      { name: "Brésil", flag: "br" },
+      { name: "Haïti", flag: "ht" },
+      { name: "États-Unis", flag: "us" },
+      { name: "Australie", flag: "au" },
+      { name: "Turquie", flag: "tr" },
+      { name: "Paraguay", flag: "py" },
+      { name: "Allemagne", flag: "de" },
+      { name: "Côte d'Ivoire", flag: "ci" },
+      { name: "Équateur", flag: "ec" },
+      { name: "Curaçao", flag: "cw" },
+      { name: "Pays-Bas", flag: "nl" },
+      { name: "Suède", flag: "se" },
+      { name: "Tunisie", flag: "tn" },
+      { name: "Japon", flag: "jp" },
+      { name: "Belgique", flag: "be" },
+      { name: "Égypte", flag: "eg" },
+      { name: "Iran", flag: "ir" },
+      { name: "Nouvelle-Zélande", flag: "nz" },
+      { name: "Espagne", flag: "es" },
+      { name: "Cap-Vert", flag: "cv" },
+      { name: "Arabie saoudite", flag: "sa" },
+      { name: "Uruguay", flag: "uy" },
+      { name: "France", flag: "fr" },
+      { name: "Sénégal", flag: "sn" },
+      { name: "Irak", flag: "iq" },
+      { name: "Norvège", flag: "no" },
+      { name: "Argentine", flag: "ar" },
+      { name: "Algérie", flag: "dz" },
+      { name: "Autriche", flag: "at" },
+      { name: "Jordanie", flag: "jo" },
+      { name: "Portugal", flag: "pt" },
+      { name: "RD Congo", flag: "cd" },
+      { name: "Ouzbékistan", flag: "uz" },
+      { name: "Colombie", flag: "co" },
+      { name: "Angleterre", flag: "gb-eng" },
+      { name: "Croatie", flag: "hr" },
+      { name: "Ghana", flag: "gh" },
+      { name: "Panama", flag: "pa" }
+    ].sort((a, b) => a.name.localeCompare(b.name));
+
+    // Base matches from index.tsx (2026 World Cup Groups representation)
+    const formatFrenchDate = (dateStr) => {
+      if (!dateStr) return "";
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      const formatted = d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+      return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+    };
+
+    const isPlaceholder = (name) => {
+      if (!name) return true;
+      const n = name.toLowerCase();
+      return (
+        /^\d[a-l]$/i.test(n) ||
+        /^[wl]\d+$/i.test(n) ||
+        n.includes('/') ||
+        n.includes('winner') ||
+        n.includes('runner') ||
+        n.includes('loser') ||
+        n.includes('third place') ||
+        /^[a-l]\d$/i.test(n)
+      );
+    };
+
+    // Base matches from index.tsx (2026 World Cup Groups representation)
+    const DEFAULT_MATCHES = [
+      // Groupe A (2026 representation)
+      { id: "a1", group: "Groupe A", day: "yesterday", status: "finished", date: "Jeu. 11 juin", rawDate: "2026-06-11", teamA: { name: "Mexique", flag: "mx", score: 2, goals: ["Julián Quiñones 9'", "Raúl Jiménez 67'"] }, teamB: { name: "Afrique du Sud", flag: "za", score: 0 } },
+      { id: "a2", group: "Groupe A", day: "yesterday", status: "finished", date: "Jeu. 11 juin", rawDate: "2026-06-11", teamA: { name: "Corée du Sud", flag: "kr", score: 2, goals: ["Hwang In-Beom 67'", "Oh Hyeon-Gyu 80'"] }, teamB: { name: "Tchéquie", flag: "cz", score: 1, goals: ["Ladislav Krejcí 59'"] } },
+      { id: "a3", group: "Groupe A", day: "today", status: "finished", date: "Jeu. 18 juin", rawDate: "2026-06-18", teamA: { name: "Tchéquie", flag: "cz", score: 1, goals: ["Michal Sadílek 6'"] }, teamB: { name: "Afrique du Sud", flag: "za", score: 1, goals: ["Teboho Mokoena 83' (sp)"] } },
+      { id: "a4", group: "Groupe A", day: "today", status: "finished", date: "Jeu. 18 juin", rawDate: "2026-06-18", teamA: { name: "Mexique", flag: "mx", score: 1, goals: ["Luis Romo 50'"] }, teamB: { name: "Corée du Sud", flag: "kr", score: 0 } },
+      { id: "a5", group: "Groupe A", day: "tomorrow", status: "scheduled", date: "Mer. 24 juin", rawDate: "2026-06-24", teamA: { name: "Tchéquie", flag: "cz" }, teamB: { name: "Mexique", flag: "mx" } },
+      { id: "a6", group: "Groupe A", day: "tomorrow", status: "scheduled", date: "Mer. 24 juin", rawDate: "2026-06-24", teamA: { name: "Afrique du Sud", flag: "za" }, teamB: { name: "Corée du Sud", flag: "kr" } },
+
+      // Groupe B (2026 representation)
+      { id: "b1", group: "Groupe B", day: "yesterday", status: "finished", date: "Ven. 12 juin", rawDate: "2026-06-12", teamA: { name: "Canada", flag: "ca", score: 1, goals: ["Cyle Larin 78'"] }, teamB: { name: "Bosnie-Herzégovine", flag: "ba", score: 1, goals: ["Jovo Lukić 21'"] } },
+      { id: "b2", group: "Groupe B", day: "yesterday", status: "finished", date: "Sam. 13 juin", rawDate: "2026-06-13", teamA: { name: "Qatar", flag: "qa", score: 1, goals: ["Miro Muheim 90+4' (csc)"] }, teamB: { name: "Suisse", flag: "ch", score: 1, goals: ["Breel Embolo 17' (sp)"] } },
+      { id: "b3", group: "Groupe B", day: "today", status: "finished", date: "Jeu. 18 juin", rawDate: "2026-06-18", teamA: { name: "Suisse", flag: "ch", score: 4, goals: ["Johan Manzambi 74'", "Rubén Vargas 84'", "Johan Manzambi 90'", "Granit Xhaka 90+7' (sp)"] }, teamB: { name: "Bosnie-Herzégovine", flag: "ba", score: 1, goals: ["Ermin Mahmic 90+3'"] } },
+      { id: "b4", group: "Groupe B", day: "today", status: "finished", date: "Jeu. 18 juin", rawDate: "2026-06-18", teamA: { name: "Canada", flag: "ca", score: 6, goals: ["Cyle Larin 16'", "Jonathan David 29'", "Jonathan David 45+3'", "Nathan Saliba 64'", "Mohamed Manai 75' (csc)", "Jonathan David 90+2'"] }, teamB: { name: "Qatar", flag: "qa", score: 0 } },
+      { id: "b5", group: "Groupe B", day: "tomorrow", status: "scheduled", date: "Mer. 24 juin", rawDate: "2026-06-24", teamA: { name: "Bosnie-Herzégovine", flag: "ba" }, teamB: { name: "Qatar", flag: "qa" } },
+      { id: "b6", group: "Groupe B", day: "tomorrow", status: "scheduled", date: "Mer. 24 juin", rawDate: "2026-06-24", teamA: { name: "Suisse", flag: "ch" }, teamB: { name: "Canada", flag: "ca" } }
+    ];
+
+    let matches = [];
+
+    // Initialize Page
+    async function initPage() {
+      // 1. Populate selectors (critical to allow team selection immediately)
+      try {
+        populateTeamDropdowns();
+      } catch (err) {
+        console.error("Error populating dropdowns:", err);
+      }
+
+      // 2. Hide/show score fields
+      try {
+        toggleScoreInputs();
+      } catch (err) {
+        console.error("Error toggling score inputs:", err);
+      }
+
+      // 3. Render icons
+      try {
+        if (typeof lucide !== "undefined") {
+          lucide.createIcons();
+        }
+      } catch (err) {
+        console.error("Error creating icons:", err);
+      }
+
+      // 4. Load matches (async from Firestore or localStorage fallback)
+      try {
+        await loadMatches();
+      } catch (err) {
+        console.error("Error loading matches:", err);
+      }
+
+      // 5. Load API key (async from Firestore)
+      try {
+        await loadTheStatsApiKey();
+      } catch (err) {
+        console.error("Error loading API key:", err);
+      }
+
+      // 6. Render loaded matches
+      try {
+        filterAndRenderMatches();
+      } catch (err) {
+        console.error("Error rendering matches:", err);
+      }
+    }
+
+    // Execute page init
+    if (document.readyState === "loading") {
+      window.addEventListener("DOMContentLoaded", initPage);
+    } else {
+      initPage();
+    }
+
+    function normalizeString(str) {
+      if (!str) return "";
+      return str
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    // Load matches from local storage instantly, then sync from Supabase in the background
+    async function loadMatches() {
+      // 1. Instant load from localStorage
+      const stored = localStorage.getItem("mondial_matches");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          matches = parsed.filter(m => !isPlaceholder(m.teamA.name) && !isPlaceholder(m.teamB.name));
+        } catch (e) {
+          matches = [...DEFAULT_MATCHES];
+        }
+      } else {
+        matches = [...DEFAULT_MATCHES];
+      }
+
+      // Render instantly
+      filterAndRenderMatches();
+
+      // 2. Fetch from Supabase in background
+      try {
+        const fsMatches = await loadMatchesFromSupabase();
+        if (fsMatches && fsMatches.length > 0) {
+          matches = fsMatches;
+          localStorage.setItem("mondial_matches", JSON.stringify(matches));
+          filterAndRenderMatches(); // Re-render with fresh database data
+        } else {
+          // If Supabase is empty, seed it in the background
+          if (matches.length > 0) {
+            saveAllMatchesToSupabase(matches).catch(err => console.error("Background seeding failed:", err));
+          }
+        }
+      } catch (err) {
+        console.error("Supabase sync failed:", err);
+      }
+    }
+
+    // Save matches to local storage
+    function saveMatches() {
+      localStorage.setItem("mondial_matches", JSON.stringify(matches));
+    }
+
+    // Populate dropdown selectors
+    function populateTeamDropdowns() {
+      const selectA = document.getElementById("teamA-select");
+      const selectB = document.getElementById("teamB-select");
+      
+      let html = `<option value="">-- Choisir un pays --</option>`;
+      PREDEFINED_TEAMS.forEach((team) => {
+        html += `<option value="${team.flag}">${team.name}</option>`;
+      });
+      html += `<option value="custom">-- Autre équipe --</option>`;
+      
+      selectA.innerHTML = html;
+      selectB.innerHTML = html;
+    }
+
+    // Handlers for selection
+    function handleTeamSelect(type) {
+      const select = document.getElementById(`team${type}-select`);
+      const customNameInput = document.getElementById(`team${type}-custom-name`);
+      const customFlagInput = document.getElementById(`team${type}-custom-flag`);
+      const preview = document.getElementById(`team${type}-flag-preview`);
+
+      if (select.value === "custom") {
+        customNameInput.value = "";
+        customFlagInput.value = "";
+        customNameInput.disabled = false;
+        customFlagInput.disabled = false;
+        preview.classList.add("hidden");
+      } else if (select.value) {
+        const teamObj = PREDEFINED_TEAMS.find(t => t.flag === select.value);
+        if (teamObj) {
+          customNameInput.value = teamObj.name;
+          customFlagInput.value = teamObj.flag;
+          customNameInput.disabled = true;
+          customFlagInput.disabled = true;
+          
+          preview.src = `https://flagcdn.com/w40/${teamObj.flag}.png`;
+          preview.classList.remove("hidden");
+        }
+      } else {
+        customNameInput.value = "";
+        customFlagInput.value = "";
+        preview.classList.add("hidden");
+      }
+    }
+
+    // Update flag preview dynamically
+    function updateFlagPreview(type) {
+      const flagInput = document.getElementById(`team${type}-custom-flag`);
+      const preview = document.getElementById(`team${type}-flag-preview`);
+      const flagCode = flagInput.value.trim().toLowerCase();
+      
+      if (flagCode.length > 0) {
+        preview.src = `https://flagcdn.com/w40/${flagCode}.png`;
+        preview.classList.remove("hidden");
+      } else {
+        preview.classList.add("hidden");
+      }
+    }
+
+    // Hide/show score fields based on status
+    function toggleScoreInputs() {
+      const status = document.getElementById("status").value;
+      const scoreContainer = document.getElementById("score-inputs-container");
+      if (status === "finished") {
+        scoreContainer.classList.remove("hidden");
+      } else {
+        scoreContainer.classList.add("hidden");
+      }
+    }
+
+    // Handle form submit to add or edit a match
+    function handleAddMatch(event) {
+      event.preventDefault();
+      
+      const groupVal = document.getElementById("group").value;
+      const teamAName = document.getElementById("teamA-custom-name").value.trim();
+      const teamAFlag = document.getElementById("teamA-custom-flag").value.trim().toLowerCase();
+      const teamBName = document.getElementById("teamB-custom-name").value.trim();
+      const teamBFlag = document.getElementById("teamB-custom-flag").value.trim().toLowerCase();
+      const dayVal = document.getElementById("day").value;
+      const statusVal = document.getElementById("status").value;
+      const dateVal = document.getElementById("match-date-input").value;
+      const timeVal = document.getElementById("match-time-input").value;
+      
+      const isFinished = statusVal === "finished";
+      const scoreAVal = isFinished ? (parseInt(document.getElementById("scoreA").value) || 0) : undefined;
+      const scoreBVal = isFinished ? (parseInt(document.getElementById("scoreB").value) || 0) : undefined;
+      const formattedDate = dateVal ? formatFrenchDate(dateVal) : "";
+      
+      if (editingMatchId) {
+        const idx = matches.findIndex(m => m.id === editingMatchId);
+        if (idx !== -1) {
+          const match = matches[idx];
+          match.group = `Groupe ${groupVal}`;
+          match.day = dayVal;
+          match.status = statusVal;
+          match.date = formattedDate;
+          match.rawDate = dateVal;
+          match.time = timeVal;
+          
+          match.teamA.name = teamAName;
+          match.teamA.flag = teamAFlag;
+          if (isFinished) {
+            match.teamA.score = scoreAVal;
+          } else {
+            delete match.teamA.score;
+          }
+          
+          match.teamB.name = teamBName;
+          match.teamB.flag = teamBFlag;
+          if (isFinished) {
+            match.teamB.score = scoreBVal;
+          } else {
+            delete match.teamB.score;
+          }
+          
+          saveMatches();
+          saveMatchToSupabase(match);
+          showToast("Match modifié avec succès !");
+          cancelEditMatch();
+          filterAndRenderMatches();
+        }
+      } else {
+        const matchId = "m_" + Date.now();
+        
+        const teamA = {
+          name: teamAName,
+          flag: teamAFlag,
+          goals: [], yellows: [], reds: [],
+          ...(isFinished ? { score: scoreAVal } : {})
+        };
+        
+        const teamB = {
+          name: teamBName,
+          flag: teamBFlag,
+          goals: [], yellows: [], reds: [],
+          ...(isFinished ? { score: scoreBVal } : {})
+        };
+        
+        const newMatch = {
+          id: matchId,
+          group: `Groupe ${groupVal}`,
+          day: dayVal,
+          status: statusVal,
+          date: formattedDate,
+          rawDate: dateVal,
+          time: timeVal,
+          teamA: teamA,
+          teamB: teamB
+        };
+
+        matches.unshift(newMatch);
+        saveMatches();
+        saveMatchToSupabase(newMatch);
+        showToast("Match créé avec succès !");
+        cancelEditMatch();
+        filterAndRenderMatches();
+      }
+    }
+
+    function startEditMatch(matchId) {
+      const match = matches.find(m => m.id === matchId);
+      if (!match) return;
+
+      editingMatchId = matchId;
+
+      // Update form UI
+      document.getElementById("form-title").innerText = "Modifier le Match";
+      document.getElementById("submit-btn-text").innerText = "Sauvegarder";
+      document.getElementById("cancel-edit-btn").classList.remove("hidden");
+      
+      const submitIcon = document.getElementById("submit-btn-icon");
+      if (submitIcon) {
+        submitIcon.setAttribute("data-lucide", "save");
+        lucide.createIcons();
+      }
+
+      // Set group select
+      const grp = match.group.replace("Groupe ", "");
+      document.getElementById("group").value = grp;
+
+      // Set teams
+      setTeamFormSelect("A", match.teamA.name, match.teamA.flag);
+      setTeamFormSelect("B", match.teamB.name, match.teamB.flag);
+
+      // Set day, status and date
+      document.getElementById("day").value = match.day;
+      document.getElementById("status").value = match.status;
+      document.getElementById("match-date-input").value = match.rawDate || "";
+      document.getElementById("match-time-input").value = match.time || "";
+      
+      toggleScoreInputs();
+      if (match.status === "finished") {
+        document.getElementById("scoreA").value = match.teamA.score !== undefined ? match.teamA.score : 0;
+        document.getElementById("scoreB").value = match.teamB.score !== undefined ? match.teamB.score : 0;
+      }
+
+      // Scroll to form
+      document.getElementById("add-match-form").scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function setTeamFormSelect(type, name, flag) {
+      const select = document.getElementById(`team${type}-select`);
+      const customNameInput = document.getElementById(`team${type}-custom-name`);
+      const customFlagInput = document.getElementById(`team${type}-custom-flag`);
+      const preview = document.getElementById(`team${type}-flag-preview`);
+
+      // Check if predefined flag
+      const isPredefined = PREDEFINED_TEAMS.some(t => t.flag === flag);
+      if (isPredefined) {
+        select.value = flag;
+        customNameInput.value = name;
+        customFlagInput.value = flag;
+        customNameInput.disabled = true;
+        customFlagInput.disabled = true;
+        preview.src = `https://flagcdn.com/w40/${flag}.png`;
+        preview.classList.remove("hidden");
+      } else {
+        select.value = "custom";
+        customNameInput.value = name;
+        customFlagInput.value = flag;
+        customNameInput.disabled = false;
+        customFlagInput.disabled = false;
+        preview.src = `https://flagcdn.com/w40/${flag}.png`;
+        preview.classList.remove("hidden");
+      }
+    }
+
+    function cancelEditMatch() {
+      editingMatchId = null;
+      document.getElementById("form-title").innerText = "Ajouter un Match";
+      document.getElementById("submit-btn-text").innerText = "Créer le match";
+      document.getElementById("cancel-edit-btn").classList.add("hidden");
+      
+      const submitIcon = document.getElementById("submit-btn-icon");
+      if (submitIcon) {
+        submitIcon.setAttribute("data-lucide", "plus");
+        lucide.createIcons();
+      }
+      
+      document.getElementById("add-match-form").reset();
+      
+      // Reset flag previews and disabled states
+      ["A", "B"].forEach(type => {
+        document.getElementById(`team${type}-flag-preview`).classList.add("hidden");
+        document.getElementById(`team${type}-custom-name`).disabled = false;
+        document.getElementById(`team${type}-custom-flag`).disabled = false;
+      });
+      
+      document.getElementById("match-date-input").value = "";
+      document.getElementById("match-time-input").value = "";
+      toggleScoreInputs();
+    }
+
+    function changeScore(matchId, team, delta) {
+      const idx = matches.findIndex(m => m.id === matchId);
+      if (idx !== -1) {
+        const match = matches[idx];
+        if (match.status !== "finished") {
+          match.status = "finished";
+        }
+        
+        if (match.teamA.score === undefined) {
+          match.teamA.score = 0;
+        }
+        if (match.teamB.score === undefined) {
+          match.teamB.score = 0;
+        }
+        
+        const teamKey = team === "A" ? "teamA" : "teamB";
+        match[teamKey].score = Math.max(0, match[teamKey].score + delta);
+        
+        saveMatches();
+        saveMatchToSupabase(match);
+        filterAndRenderMatches();
+        showToast("Score mis à jour");
+      }
+    }
+
+    // Toggle status (scheduled / finished)
+    function toggleMatchStatus(matchId) {
+      const idx = matches.findIndex(m => m.id === matchId);
+      if (idx !== -1) {
+        const match = matches[idx];
+        if (match.status === "finished") {
+          match.status = "scheduled";
+          delete match.teamA.score;
+          delete match.teamB.score;
+        } else {
+          match.status = "finished";
+          match.teamA.score = 0;
+          match.teamB.score = 0;
+        }
+        saveMatches();
+        saveMatchToSupabase(match);
+        filterAndRenderMatches();
+        showToast("Statut du match modifié");
+      }
+    }
+
+    // Direct Event Actions (buteurs, cartons)
+    function updateMatchEvents(matchId, teamType, eventType, csvString) {
+      const idx = matches.findIndex(m => m.id === matchId);
+      if (idx !== -1) {
+        const match = matches[idx];
+        const team = teamType === 'A' ? match.teamA : match.teamB;
+        
+        const arr = csvString.split(',')
+          .map(val => val.trim())
+          .filter(val => val.length > 0);
+          
+        team[eventType] = arr;
+        saveMatches();
+        saveMatchToSupabase(match);
+      }
+    }
+
+    // Toggle Red Card status
+    function toggleRedCard(matchId, team) {
+      const idx = matches.findIndex(m => m.id === matchId);
+      if (idx !== -1) {
+        const match = matches[idx];
+        const teamKey = team === "A" ? "teamA" : "teamB";
+        match[teamKey].redCard = !match[teamKey].redCard;
+        saveMatches();
+        saveMatchToSupabase(match);
+        filterAndRenderMatches();
+        showToast("Carton rouge mis à jour");
+      }
+    }
+
+    // Delete Match
+    function deleteMatch(matchId) {
+      if (confirm("Voulez-vous vraiment supprimer ce match ?")) {
+        matches = matches.filter(m => m.id !== matchId);
+        saveMatches();
+        deleteMatchFromSupabase(matchId);
+        filterAndRenderMatches();
+        showToast("Match supprimé");
+      }
+    }
+
+    // Filter and Render Matches
+    function filterAndRenderMatches() {
+      const searchQuery = normalizeString(document.getElementById("search-input").value.trim());
+      const filterDay = document.getElementById("filter-day").value;
+      const filterGroup = document.getElementById("filter-group").value;
+      
+      const container = document.getElementById("matches-container");
+      const emptyState = document.getElementById("empty-state");
+      
+      const filtered = matches.filter((m) => {
+        if (filterGroup !== "all" && m.group !== `Groupe ${filterGroup}`) return false;
+        if (filterDay !== "all" && m.day !== filterDay) return false;
+        if (searchQuery) {
+          const matchText = normalizeString(`${m.group} ${m.teamA.name} ${m.teamB.name}`);
+          if (!matchText.includes(searchQuery)) return false;
+        }
+        return true;
+      });
+      
+      document.getElementById("match-count").innerText = filtered.length;
+
+      if (filtered.length === 0) {
+        container.innerHTML = "";
+        emptyState.classList.remove("hidden");
+        return;
+      }
+      
+      emptyState.classList.add("hidden");
+      
+      let html = "";
+      filtered.forEach((m) => {
+        const isFinished = m.status === "finished";
+        const scoreA = m.teamA.score !== undefined ? m.teamA.score : "-";
+        const scoreB = m.teamB.score !== undefined ? m.teamB.score : "-";
+        
+        const goalsA = m.teamA.goals ? m.teamA.goals.join(', ') : '';
+        const yellowsA = m.teamA.yellows ? m.teamA.yellows.join(', ') : '';
+        const redsA = m.teamA.reds ? m.teamA.reds.join(', ') : '';
+
+        const goalsB = m.teamB.goals ? m.teamB.goals.join(', ') : '';
+        const yellowsB = m.teamB.yellows ? m.teamB.yellows.join(', ') : '';
+        const redsB = m.teamB.reds ? m.teamB.reds.join(', ') : '';
+
+        html += `
+          <div class="bg-white border ${isFinished ? 'border-gray-200' : 'border-blue-200'} rounded-xl p-4 flex flex-col justify-between shadow-sm transition hover:border-gray-300">
+            <!-- Card Header -->
+            <div class="flex items-center justify-between text-xs text-slate-500 mb-3 pb-2 border-b border-gray-100">
+              <span class="font-semibold bg-gray-100 px-2 py-0.5 rounded text-gray-700">${m.group}</span>
+              <span class="capitalize font-medium text-slate-500">${translateDay(m.day)}${m.date ? ` (${m.date}${m.time ? ` · ${m.time.replace(':', 'h')}` : ''})` : ''}</span>
+            </div>
+            
+            <!-- Teams and Scores -->
+            <div class="space-y-4 my-2">
+              <!-- Team A -->
+              <div>
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <img src="https://flagcdn.com/w40/${m.teamA.flag}.png" width="20" height="14" class="rounded-sm object-cover ring-1 ring-black/5" alt="">
+                    <span class="text-sm font-semibold text-gray-800">${m.teamA.name}</span>
+                    <button onclick="toggleRedCard('${m.id}', 'A')" class="px-1.5 py-0.5 rounded text-[9px] ${m.teamA.redCard ? 'bg-red-500 text-white font-bold' : 'bg-gray-100 hover:bg-gray-250 text-gray-500'} transition" title="Activer carton rouge rapide">
+                      CR
+                    </button>
+                  </div>
+                  
+                  <div class="flex items-center gap-1.5">
+                    <button onclick="changeScore('${m.id}', 'A', -1)" class="w-6 h-6 rounded bg-gray-150 hover:bg-gray-200 text-gray-600 font-bold flex items-center justify-center text-xs transition">-</button>
+                    <span class="w-8 text-center text-base font-bold text-gray-800 tabular-nums">${scoreA}</span>
+                    <button onclick="changeScore('${m.id}', 'A', 1)" class="w-6 h-6 rounded bg-gray-150 hover:bg-gray-200 text-gray-600 font-bold flex items-center justify-center text-xs transition">+</button>
+                  </div>
+                </div>
+
+                <!-- Team A Inline Events Details -->
+                <div class="mt-2 pl-7 space-y-1.5">
+                  <div class="grid grid-cols-3 gap-1">
+                    <input type="text" placeholder="⚽ Buteurs" value="${goalsA}" onchange="updateMatchEvents('${m.id}', 'A', 'goals', this.value)" class="col-span-1 w-full bg-gray-50 border border-gray-200 rounded px-1.5 py-0.5 text-[10px] text-gray-750 focus:bg-white focus:border-blue-500 focus:outline-none">
+                    <input type="text" placeholder="🟨 Jaunes" value="${yellowsA}" onchange="updateMatchEvents('${m.id}', 'A', 'yellows', this.value)" class="col-span-1 w-full bg-gray-50 border border-gray-200 rounded px-1.5 py-0.5 text-[10px] text-gray-750 focus:bg-white focus:border-blue-500 focus:outline-none">
+                    <input type="text" placeholder="🟥 Rouges" value="${redsA}" onchange="updateMatchEvents('${m.id}', 'A', 'reds', this.value)" class="col-span-1 w-full bg-gray-50 border border-gray-200 rounded px-1.5 py-0.5 text-[10px] text-gray-750 focus:bg-white focus:border-blue-500 focus:outline-none">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Divider -->
+              <div class="h-px bg-gray-100"></div>
+
+              <!-- Team B -->
+              <div>
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <img src="https://flagcdn.com/w40/${m.teamB.flag}.png" width="20" height="14" class="rounded-sm object-cover ring-1 ring-black/5" alt="">
+                    <span class="text-sm font-semibold text-gray-800">${m.teamB.name}</span>
+                    <button onclick="toggleRedCard('${m.id}', 'B')" class="px-1.5 py-0.5 rounded text-[9px] ${m.teamB.redCard ? 'bg-red-500 text-white font-bold' : 'bg-gray-100 hover:bg-gray-250 text-gray-500'} transition" title="Activer carton rouge rapide">
+                      CR
+                    </button>
+                  </div>
+                  
+                  <div class="flex items-center gap-1.5">
+                    <button onclick="changeScore('${m.id}', 'B', -1)" class="w-6 h-6 rounded bg-gray-150 hover:bg-gray-200 text-gray-600 font-bold flex items-center justify-center text-xs transition">-</button>
+                    <span class="w-8 text-center text-base font-bold text-gray-800 tabular-nums">${scoreB}</span>
+                    <button onclick="changeScore('${m.id}', 'B', 1)" class="w-6 h-6 rounded bg-gray-150 hover:bg-gray-200 text-gray-600 font-bold flex items-center justify-center text-xs transition">+</button>
+                  </div>
+                </div>
+
+                <!-- Team B Inline Events Details -->
+                <div class="mt-2 pl-7 space-y-1.5">
+                  <div class="grid grid-cols-3 gap-1">
+                    <input type="text" placeholder="⚽ Buteurs" value="${goalsB}" onchange="updateMatchEvents('${m.id}', 'B', 'goals', this.value)" class="col-span-1 w-full bg-gray-50 border border-gray-200 rounded px-1.5 py-0.5 text-[10px] text-gray-750 focus:bg-white focus:border-blue-500 focus:outline-none">
+                    <input type="text" placeholder="🟨 Jaunes" value="${yellowsB}" onchange="updateMatchEvents('${m.id}', 'B', 'yellows', this.value)" class="col-span-1 w-full bg-gray-50 border border-gray-200 rounded px-1.5 py-0.5 text-[10px] text-gray-750 focus:bg-white focus:border-blue-500 focus:outline-none">
+                    <input type="text" placeholder="🟥 Rouges" value="${redsB}" onchange="updateMatchEvents('${m.id}', 'B', 'reds', this.value)" class="col-span-1 w-full bg-gray-50 border border-gray-200 rounded px-1.5 py-0.5 text-[10px] text-gray-750 focus:bg-white focus:border-blue-500 focus:outline-none">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card Actions -->
+            <div class="flex items-center justify-between mt-5 pt-3 border-t border-gray-100">
+              <button onclick="toggleMatchStatus('${m.id}')" class="text-xs flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border ${isFinished ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-gray-100 border-gray-200 text-gray-600'} hover:brightness-95 transition">
+                <i data-lucide="${isFinished ? 'check-circle' : 'clock'}" class="w-3.5 h-3.5"></i>
+                <span>${isFinished ? 'Terminé' : 'Programmé'}</span>
+              </button>
+              
+              <div class="flex items-center gap-1.5">
+                <button onclick="startEditMatch('${m.id}')" class="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 hover:bg-blue-150 text-blue-555 flex items-center justify-center transition" title="Modifier le match">
+                  <i data-lucide="edit-3" class="w-4 h-4"></i>
+                </button>
+                <button onclick="deleteMatch('${m.id}')" class="w-8 h-8 rounded-lg bg-red-50 border border-red-100 hover:bg-red-150 text-red-550 flex items-center justify-center transition" title="Supprimer le match">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      
+      container.innerHTML = html;
+      lucide.createIcons();
+    }
+
+    // Helper translation
+    function translateDay(day) {
+      const days = {
+        yesterday: "hier",
+        today: "aujourd'hui",
+        tomorrow: "demain",
+        later: "plus tard"
+      };
+      return days[day] || day;
+    }
+
+    // Toast feedback message
+    let toastTimeout;
+    function showToast(message, isAlert = false) {
+      const toast = document.getElementById("toast");
+      const toastText = document.getElementById("toast-text");
+      const toastIcon = document.getElementById("toast-icon");
+      
+      toastText.innerText = message;
+      
+      if (isAlert) {
+        toast.className = "fixed bottom-5 right-5 transform translate-y-10 opacity-0 pointer-events-none transition-all duration-300 z-50 bg-blue-650 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 border border-blue-500";
+        toastIcon.setAttribute("data-lucide", "info");
+      } else {
+        toast.className = "fixed bottom-5 right-5 transform translate-y-10 opacity-0 pointer-events-none transition-all duration-300 z-50 bg-emerald-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 border border-emerald-500";
+        toastIcon.setAttribute("data-lucide", "check-circle");
+      }
+      lucide.createIcons();
+      
+      clearTimeout(toastTimeout);
+      toast.classList.remove("translate-y-10", "opacity-0", "pointer-events-none");
+      
+      toastTimeout = setTimeout(() => {
+        toast.classList.add("translate-y-10", "opacity-0", "pointer-events-none");
+      }, 2800);
+    }
+
+    // Confirm dialog modal functions
+    function confirmReset() {
+      document.getElementById("reset-modal").classList.remove("hidden");
+    }
+    
+    function closeResetModal() {
+      document.getElementById("reset-modal").classList.add("hidden");
+    }
+
+    // Reset to defaults
+    function resetToDefaults() {
+      matches = [...DEFAULT_MATCHES];
+      saveMatches();
+      saveAllMatchesToSupabase(matches);
+      closeResetModal();
+      filterAndRenderMatches();
+      showToast("Données d'origine restaurées !");
+    }
+
+    // ==========================================
+    // AUTOMATIC MODE & API MOCK LOGIC
+    // ==========================================
+
+    let simulatorInterval = null;
+
+    // Database of players for realistic simulation
+    const FAMOUS_PLAYERS = {
+      "France": ["K. Mbappé", "A. Griezmann", "O. Dembélé", "M. Thuram", "B. Barcola", "W. Zaïre-Emery", "N. Kanté"],
+      "Brésil": ["Vinicius Jr", "Neymar Jr", "Rodrygo", "Raphinha", "Endrick", "Lucas Paquetá", "G. Martinelli"],
+      "Allemagne": ["F. Wirtz", "J. Musiala", "K. Havertz", "L. Sané", "T. Müller", "N. Füllkrug", "K. Gündoğan"],
+      "Argentine": ["L. Messi", "L. Martinez", "J. Alvarez", "A. Di Maria", "E. Fernandez", "R. De Paul", "A. Mac Allister"],
+      "Angleterre": ["H. Kane", "J. Bellingham", "P. Foden", "B. Saka", "C. Palmer", "D. Rice", "O. Watkins"],
+      "Espagne": ["Lamine Yamal", "Nico Williams", "Alvaro Morata", "Dani Olmo", "Rodri", "Pedri", "Gavi"],
+      "Portugal": ["Cristiano Ronaldo", "Bruno Fernandes", "Bernardo Silva", "Rafael Leão", "João Félix", "D. Jota"],
+      "Uruguay": ["D. Núñez", "L. Suárez", "F. Valverde", "F. Pellistri", "R. Araújo"],
+      "Belgique": ["R. Lukaku", "K. De Bruyne", "J. Doku", "L. Trossard", "Y. Tielemans"],
+      "Italie": ["F. Chiesa", "G. Scamacca", "N. Barella", "D. Frattesi", "L. Pellegrini"]
+    };
+
+    const DEFAULT_PLAYERS = ["J. Dupont", "P. Martin", "M. Silva", "G. Rossi", "A. Smith", "J. Doe", "L. Novak", "A. Garcia"];
+
+    function getPlayerName(teamName) {
+      const players = FAMOUS_PLAYERS[teamName] || DEFAULT_PLAYERS;
+      return players[Math.floor(Math.random() * players.length)];
+    }
+
+    function generateRealisticCards(teamName, isFinished) {
+      if (!isFinished) return { yellows: [], reds: [] };
+      const yellows = [];
+      const reds = [];
+      
+      // 1 to 3 yellow cards
+      const numYellows = Math.floor(Math.random() * 3) + 1;
+      for (let i = 0; i < numYellows; i++) {
+        const player = getPlayerName(teamName);
+        const min = Math.floor(Math.random() * 90) + 1;
+        yellows.push(`${player} ${min}'`);
+      }
+      
+      // 5% chance of a red card
+      if (Math.random() < 0.05) {
+        const player = getPlayerName(teamName);
+        const min = Math.floor(Math.random() * 90) + 1;
+        reds.push(`${player} ${min}'`);
+      }
+      
+      return { yellows, reds };
+    }
+
+    // Toggle simulator interval loop
+    function toggleSimulator(enabled) {
+      if (enabled) {
+        if (simulatorInterval) clearInterval(simulatorInterval);
+        
+        simulatorInterval = setInterval(() => {
+          if (matches.length === 0) return;
+          
+          const randomIdx = Math.floor(Math.random() * matches.length);
+          const match = matches[randomIdx];
+          
+          if (!match.teamA.goals) match.teamA.goals = [];
+          if (!match.teamA.yellows) match.teamA.yellows = [];
+          if (!match.teamA.reds) match.teamA.reds = [];
+          if (!match.teamB.goals) match.teamB.goals = [];
+          if (!match.teamB.yellows) match.teamB.yellows = [];
+          if (!match.teamB.reds) match.teamB.reds = [];
+
+          if (match.status !== 'finished') {
+            match.status = 'finished';
+            match.teamA.score = 0;
+            match.teamB.score = 0;
+          }
+          
+          const teamType = Math.random() > 0.5 ? 'A' : 'B';
+          const team = teamType === 'A' ? match.teamA : match.teamB;
+          const opponent = teamType === 'A' ? match.teamB : match.teamA;
+          
+          const eventRand = Math.random();
+          const minute = Math.floor(Math.random() * 90) + 1;
+          const player = getPlayerName(team.name);
+          
+          if (eventRand < 0.6) {
+            team.score = (team.score || 0) + 1;
+            team.goals.push(`${player} ${minute}'`);
+            showToast(`⚽ BUT ! ${team.name} ${team.score} - ${opponent.score} ${opponent.name} (${player} ${minute}')`, true);
+          } else if (eventRand < 0.85) {
+            team.yellows.push(`${player} ${minute}'`);
+            showToast(`🟨 Carton Jaune pour ${team.name} (${player} ${minute}')`, true);
+          } else {
+            team.reds.push(`${player} ${minute}'`);
+            team.redCard = true;
+            showToast(`🟥 Carton Rouge pour ${team.name} (${player} ${minute}')`, true);
+          }
+          
+          saveMatches();
+          saveMatchToSupabase(match);
+          filterAndRenderMatches();
+        }, 5000);
+        
+        showToast("Simulateur d'API activé (événement toutes les 5s)");
+      } else {
+        if (simulatorInterval) {
+          clearInterval(simulatorInterval);
+          simulatorInterval = null;
+        }
+        showToast("Simulateur d'API désactivé");
+      }
+    }
+
+    // Mappings and translations for the external TheStatsAPI 2026 API
+    const COUNTRY_TO_FLAG = {
+      "Qatar": "qa", "Ecuador": "ec", "Senegal": "sn", "Netherlands": "nl",
+      "England": "gb-eng", "Iran": "ir", "USA": "us", "Wales": "gb-wls",
+      "Argentina": "ar", "Saudi Arabia": "sa", "Mexico": "mx", "Poland": "pl",
+      "France": "fr", "Australia": "au", "Denmark": "dk", "Tunisia": "tn",
+      "Spain": "es", "Costa Rica": "cr", "Germany": "de", "Japan": "jp",
+      "Belgium": "be", "Canada": "ca", "Morocco": "ma", "Croatia": "hr",
+      "Brazil": "br", "Serbia": "rs", "Switzerland": "ch", "Cameroon": "cm",
+      "Portugal": "pt", "Ghana": "gh", "Uruguay": "uy", "South Korea": "kr",
+      "South Africa": "za", "Czech Republic": "cz", "Bosnia & Herzegovina": "ba",
+      "Bosnia and Herzegovina": "ba",
+      "Haiti": "ht", "Scotland": "gb-sct", "Paraguay": "py", "Turkey": "tr",
+      "Curaçao": "cw", "Ivory Coast": "ci", "Sweden": "se", "Egypt": "eg",
+      "New Zealand": "nz", "Cape Verde": "cv", "Iraq": "iq", "Norway": "no",
+      "Algeria": "dz", "Austria": "at", "Jordan": "jo", "DR Congo": "cd",
+      "Uzbekistan": "uz", "Colombia": "co", "Panama": "pa",
+      "Cabo Verde": "cv", "Cote d'Ivoire": "ci", "Czechia": "cz", "IR Iran": "ir", "Korea Republic": "kr", "Turkiye": "tr",
+      "United States": "us", "Curacao": "cw", "Congo DR": "cd"
+    };
+
+    const TRANSLATE_COUNTRY = {
+      "Qatar": "Qatar", "Ecuador": "Équateur", "Senegal": "Sénégal", "Netherlands": "Pays-Bas",
+      "England": "Angleterre", "Iran": "Iran", "USA": "États-Unis", "Wales": "Pays de Galles",
+      "Argentina": "Argentine", "Saudi Arabia": "Arabie saoudite", "Mexico": "Mexique", "Poland": "Pologne",
+      "France": "France", "Australia": "Australie", "Denmark": "Danemark", "Tunisia": "Tunisie",
+      "Spain": "Espagne", "Costa Rica": "Costa Rica", "Germany": "Allemagne", "Japan": "Japon",
+      "Belgium": "Belgique", "Canada": "Canada", "Morocco": "Maroc", "Croatia": "Croatie",
+      "Brazil": "Brésil", "Serbia": "Serbie", "Switzerland": "Suisse", "Cameroon": "Cameroun",
+      "Portugal": "Portugal", "Ghana": "Ghana", "Uruguay": "Uruguay", "South Korea": "Corée du Sud",
+      "South Africa": "Afrique du Sud", "Czech Republic": "Tchéquie", "Bosnia & Herzegovina": "Bosnie-Herzégovine",
+      "Bosnia and Herzegovina": "Bosnie-Herzégovine",
+      "Haiti": "Haïti", "Scotland": "Écosse", "Paraguay": "Paraguay", "Turkey": "Turquie",
+      "Curaçao": "Curaçao", "Ivory Coast": "Côte d'Ivoire", "Sweden": "Suède", "Egypt": "Égypte",
+      "New Zealand": "Nouvelle-Zélande", "Cape Verde": "Cap-Vert", "Iraq": "Irak", "Norway": "Norvège",
+      "Algeria": "Algérie", "Austria": "Autriche", "Jordan": "Jordanie", "DR Congo": "RD Congo",
+      "Uzbekistan": "Ouzbékistan", "Colombia": "Colombie", "Panama": "Panama",
+      "Cabo Verde": "Cap-Vert", "Cote d'Ivoire": "Côte d'Ivoire", "Czechia": "Tchéquie",
+      "IR Iran": "Iran", "Korea Republic": "Corée du Sud", "Turkiye": "Turquie",
+      "United States": "États-Unis", "Curacao": "Curaçao", "Congo DR": "RD Congo"
+    };
+
+    // === TheStatsAPI.com Functions ===
+
+    // Save API key to Supabase settings table
+    async function saveTheStatsApiKey() {
+      const keyInput = document.getElementById("the-stats-api-key");
+      const keyVal = keyInput ? keyInput.value.trim() : "";
+      if (!keyVal) {
+        showToast("❌ Veuillez entrer une clé API avant de sauvegarder.");
+        return;
+      }
+
+      try {
+        showToast("💾 Sauvegarde de la clé API...", true);
+        const { error } = await supabaseClient
+          .from("settings")
+          .upsert([{ key: "the_stats_api", value: { apiKey: keyVal } }]);
+        if (error) throw error;
+        showToast("✅ Jeton API sauvegardé dans Supabase !");
+        updateApiKeyStatus(true);
+      } catch (err) {
+        console.error(err);
+        showToast("❌ Échec de la sauvegarde de la clé API.");
+      }
+    }
+
+    // Load API key from Supabase
+    async function loadTheStatsApiKey() {
+      try {
+        const { data, error } = await supabaseClient
+          .from("settings")
+          .select("value")
+          .eq("key", "the_stats_api")
+          .single();
+        if (error && error.code !== "PGRST116") throw error;
+        if (data && data.value && data.value.apiKey) {
+          const keyInput = document.getElementById("the-stats-api-key");
+          if (keyInput) keyInput.value = data.value.apiKey;
+          updateApiKeyStatus(true);
+          return data.value.apiKey;
+        }
+        updateApiKeyStatus(false);
+        return null;
+      } catch (err) {
+        console.error("Error loading API key from Supabase:", err);
+        updateApiKeyStatus(false);
+        return null;
+      }
+    }
+
+    function updateApiKeyStatus(hasKey) {
+      const statusEl = document.getElementById("api-key-status");
+      if (statusEl) {
+        if (hasKey) {
+          statusEl.innerHTML = `Statut : <span class="text-emerald-600 font-semibold">Clé configurée (Supabase)</span>`;
+        } else {
+          statusEl.innerHTML = `Statut : <span class="text-slate-500 font-medium">Clé non configurée</span>`;
+        }
+      }
+    }
+
+    // Parse group or stage name from TheStatsAPI stage/group
+    function parseGroupOrStage(stageName, groupLabel) {
+      const st = (stageName || "group-stage").toLowerCase();
+      if (groupLabel && groupLabel.length === 1) return `Groupe ${groupLabel.toUpperCase()}`;
+      if (st === "round_of_16" || st === "round-of-16") return "Huitièmes de finale";
+      if (st === "quarter_finals" || st === "quarter-finals") return "Quarts de finale";
+      if (st === "semi_finals" || st === "semi-finals") return "Demi-finales";
+      if (st === "third_place" || st === "third-place") return "Match 3e place";
+      if (st === "final") return "Finale";
+      return "Phase de groupes";
+    }
+
+    // Convert ISO Date to French format and CEST timezone (UTC+2)
+    function convertApiDate(isoString) {
+      const d = new Date(isoString);
+      if (isNaN(d.getTime())) {
+        return { date: "Date inconnue", rawDate: "", time: "00:00" };
+      }
+
+      // Format date in French: "Jeu. 11 juin"
+      let dateStr = d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Europe/Paris' });
+      dateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+      dateStr = dateStr.replace(/([a-zA-Z]{3,4})\.?\s(\d+)\s([a-zA-Zûé]+)\.?/, (match, p1, p2, p3) => {
+        const wkday = p1.endsWith('.') ? p1 : p1 + '.';
+        return `${wkday} ${p2} ${p3}`;
+      });
+
+      // Format time: "21:00"
+      const timeStr = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Europe/Paris' }).replace(':', 'h');
+
+      // Format rawDate: YYYY-MM-DD
+      const year = d.toLocaleDateString('en-CA', { year: 'numeric', timeZone: 'Europe/Paris' });
+      const month = d.toLocaleDateString('en-CA', { month: '2-digit', timeZone: 'Europe/Paris' });
+      const day = d.toLocaleDateString('en-CA', { day: '2-digit', timeZone: 'Europe/Paris' });
+      const rawDate = `${year}-${month}-${day}`;
+
+      return { date: dateStr, rawDate, time: timeStr };
+    }
+
+    // Synchronize with TheStatsAPI.com
+    async function syncWithTheStatsApi() {
+      const keyInput = document.getElementById("the-stats-api-key");
+      const key = keyInput ? keyInput.value.trim() : "";
+
+      try {
+        showToast("🔌 Connexion à l'API de TheStatsAPI.com...", true);
+
+        // Fetch keyless fixtures first
+        const response = await fetch("https://www.thestatsapi.com/world-cup/data/fixtures.json");
+        if (!response.ok) {
+          throw new Error(`Erreur HTTP : ${response.status}`);
+        }
+
+        const result = await response.json();
+        if (!result || !Array.isArray(result.fixtures)) {
+          throw new Error("Format de réponse de l'API TheStatsAPI invalide.");
+        }
+
+        // Fetch local matches to merge scores
+        let localMatches = [];
+        try {
+          const lRes = await fetch('/api-matches.json');
+          if (lRes.ok) {
+            localMatches = await lRes.json();
+          }
+        } catch (e) {
+          console.error("Failed to load local matches for sync merge:", e);
+        }
+
+        const fixtures = result.fixtures;
+        const todayStr = "2026-06-20";
+
+        let mappedMatches = fixtures.map((item) => {
+          const dateInput = item.kickoffUtc || item.date;
+          const { date, rawDate, time } = convertApiDate(dateInput);
+          const group = parseGroupOrStage(item.stage, item.group);
+
+          let dayVal = "later";
+          if (rawDate) {
+            if (rawDate === todayStr) {
+              dayVal = "today";
+            } else if (rawDate < todayStr) {
+              dayVal = "yesterday";
+            } else {
+              dayVal = "tomorrow";
+            }
+          }
+
+          const homeName = item.homeTeam || "";
+          const awayName = item.awayTeam || "";
+          const translatedHome = TRANSLATE_COUNTRY[homeName] || homeName;
+          const translatedAway = TRANSLATE_COUNTRY[awayName] || awayName;
+
+          // Find if there's matching local match with score/goals
+          const matchingLocal = localMatches.find((lMatch) => {
+            const lHome = lMatch.teamA.name;
+            const lAway = lMatch.teamB.name;
+            return (
+              normalizeString(translatedHome) === normalizeString(lHome) &&
+              normalizeString(translatedAway) === normalizeString(lAway)
+            ) || (
+              normalizeString(translatedHome) === normalizeString(lAway) &&
+              normalizeString(translatedAway) === normalizeString(lHome)
+            );
+          });
+
+          const newMatch = {
+            id: `thestatsapi_match_${item.matchNumber}`,
+            group: group,
+            status: "scheduled",
+            date: date,
+            rawDate: rawDate,
+            time: time,
+            day: dayVal,
+            teamA: {
+              name: translatedHome,
+              flag: COUNTRY_TO_FLAG[homeName] || "un",
+            },
+            teamB: {
+              name: translatedAway,
+              flag: COUNTRY_TO_FLAG[awayName] || "un",
+            }
+          };
+
+          if (matchingLocal) {
+            newMatch.status = matchingLocal.status;
+            newMatch.teamA.score = matchingLocal.teamA.score;
+            newMatch.teamA.goals = matchingLocal.teamA.goals || [];
+            newMatch.teamA.yellows = matchingLocal.teamA.yellows || [];
+            newMatch.teamA.reds = matchingLocal.teamA.reds || [];
+            newMatch.teamA.redCard = matchingLocal.teamA.redCard || false;
+
+            newMatch.teamB.score = matchingLocal.teamB.score;
+            newMatch.teamB.goals = matchingLocal.teamB.goals || [];
+            newMatch.teamB.yellows = matchingLocal.teamB.yellows || [];
+            newMatch.teamB.reds = matchingLocal.teamB.reds || [];
+            newMatch.teamB.redCard = matchingLocal.teamB.redCard || false;
+          }
+
+          return newMatch;
+        });
+
+        if (key) {
+          showToast("🔌 Récupération des scores dynamiques depuis l'API REST...", true);
+          const restUrl = "https://api.thestatsapi.com/api/football/matches?competition_id=comp_6107&season_id=sn_118868&per_page=120";
+          const restRes = await fetch(restUrl, {
+            headers: {
+              "Authorization": `Bearer ${key}`
+            }
+          });
+
+          if (restRes.ok) {
+            const restResult = await restRes.json();
+            if (restResult && Array.isArray(restResult.data)) {
+              const restMatches = restResult.data;
+              mappedMatches = mappedMatches.map((kMatch) => {
+                const matchingRest = restMatches.find((rMatch) => {
+                  const rHome = rMatch.home_team?.name || "";
+                  const rAway = rMatch.away_team?.name || "";
+                  const kHome = kMatch.teamA.name;
+                  const kAway = kMatch.teamB.name;
+                  
+                  const translatedHome = TRANSLATE_COUNTRY[rHome] || rHome;
+                  const translatedAway = TRANSLATE_COUNTRY[rAway] || rAway;
+                  
+                  return (
+                    normalizeString(translatedHome) === normalizeString(kHome) &&
+                    normalizeString(translatedAway) === normalizeString(kAway)
+                  );
+                });
+
+                if (matchingRest) {
+                  const isFinished = ["finished", "live"].includes(matchingRest.status);
+                  const homeScore = matchingRest.score?.home;
+                  const awayScore = matchingRest.score?.away;
+
+                  if (isFinished && homeScore !== null && homeScore !== undefined && awayScore !== null && awayScore !== undefined) {
+                    return {
+                      ...kMatch,
+                      status: "finished",
+                      teamA: {
+                        ...kMatch.teamA,
+                        score: homeScore
+                      },
+                      teamB: {
+                        ...kMatch.teamB,
+                        score: awayScore
+                      }
+                    };
+                  } else {
+                    return kMatch;
+                  }
+                }
+                return kMatch;
+              });
+            }
+          }
+        }
+
+        // Filter out placeholders if any
+        matches = mappedMatches.filter(m => !isPlaceholder(m.teamA.name) && !isPlaceholder(m.teamB.name));
+
+        saveMatches();
+        await saveAllMatchesToSupabase(matches);
+        filterAndRenderMatches();
+        showToast("✅ Synchronisation complète avec TheStatsAPI.com réussie !");
+      } catch (err) {
+        console.error(err);
+        showToast(`❌ Erreur de synchronisation : ${err.message}`);
+      }
+    }
+
+    // Fetch from local rich API matches JSON and align with TheStatsAPI IDs & schedule
+    async function importFromAPI() {
+      try {
+        showToast("🔌 Importation des données depuis l'API Mondial 2026...", true);
+        
+        // Fetch fixtures.json first
+        const fRes = await fetch("https://www.thestatsapi.com/world-cup/data/fixtures.json");
+        if (!fRes.ok) throw new Error("Impossible de charger les calendriers de TheStatsAPI");
+        const fData = await fRes.json();
+        if (!fData || !Array.isArray(fData.fixtures)) throw new Error("Format TheStatsAPI fixtures invalide");
+        
+        const response = await fetch('/api-matches.json');
+        if (!response.ok) throw new Error("API request failed");
+        const localMatches = await response.json();
+        if (!Array.isArray(localMatches)) throw new Error("Invalid API response format");
+
+        const todayStr = "2026-06-20";
+
+        // Map local matches to stable IDs by matching team names from fixtures.json
+        const mapped = fData.fixtures.map((fItem) => {
+          const dateInput = fItem.kickoffUtc || fItem.date;
+          const { date, rawDate, time } = convertApiDate(dateInput);
+          const group = parseGroupOrStage(fItem.stage, fItem.group);
+
+          let dayVal = "later";
+          if (rawDate) {
+            if (rawDate === todayStr) {
+              dayVal = "today";
+            } else if (rawDate < todayStr) {
+              dayVal = "yesterday";
+            } else {
+              dayVal = "tomorrow";
+            }
+          }
+
+          const fHome = fItem.homeTeam || "";
+          const fAway = fItem.awayTeam || "";
+          const translatedHome = TRANSLATE_COUNTRY[fHome] || fHome;
+          const translatedAway = TRANSLATE_COUNTRY[fAway] || fAway;
+
+          // Find if there's matching local match with score/goals
+          const matchingLocal = localMatches.find((lMatch) => {
+            const lHome = lMatch.teamA.name;
+            const lAway = lMatch.teamB.name;
+            return (
+              normalizeString(translatedHome) === normalizeString(lHome) &&
+              normalizeString(translatedAway) === normalizeString(lAway)
+            ) || (
+              normalizeString(translatedHome) === normalizeString(lAway) &&
+              normalizeString(translatedAway) === normalizeString(lHome)
+            );
+          });
+
+          const newMatch = {
+            id: `thestatsapi_match_${fItem.matchNumber}`,
+            group: group,
+            status: "scheduled",
+            date: date,
+            rawDate: rawDate,
+            time: time,
+            day: dayVal,
+            teamA: {
+              name: translatedHome,
+              flag: COUNTRY_TO_FLAG[fHome] || "un"
+            },
+            teamB: {
+              name: translatedAway,
+              flag: COUNTRY_TO_FLAG[fAway] || "un"
+            }
+          };
+
+          if (matchingLocal) {
+            newMatch.status = matchingLocal.status;
+            newMatch.teamA.score = matchingLocal.teamA.score;
+            newMatch.teamA.goals = matchingLocal.teamA.goals || [];
+            newMatch.teamA.yellows = matchingLocal.teamA.yellows || [];
+            newMatch.teamA.reds = matchingLocal.teamA.reds || [];
+            newMatch.teamA.redCard = matchingLocal.teamA.redCard || false;
+
+            newMatch.teamB.score = matchingLocal.teamB.score;
+            newMatch.teamB.goals = matchingLocal.teamB.goals || [];
+            newMatch.teamB.yellows = matchingLocal.teamB.yellows || [];
+            newMatch.teamB.reds = matchingLocal.teamB.reds || [];
+            newMatch.teamB.redCard = matchingLocal.teamB.redCard || false;
+          }
+
+          return newMatch;
+        });
+
+        // Filter out placeholders
+        matches = mapped.filter(m => !isPlaceholder(m.teamA.name) && !isPlaceholder(m.teamB.name));
+
+        saveMatches();
+        await saveAllMatchesToSupabase(matches);
+        filterAndRenderMatches();
+        showToast("✅ Matchs, scores, dates, buteurs et cartons importés avec succès !");
+      } catch (err) {
+        console.error(err);
+        showToast(`❌ Erreur d'importation : ${err.message}`);
+      }
+    }
+
+    // Subscribe to changes in matches table in real-time
+    supabaseClient
+      .channel("admin-realtime-matches")
+      .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, async (payload) => {
+        console.log("Realtime update received in admin:", payload);
+        const fsMatches = await loadMatchesFromSupabase();
+        if (fsMatches && fsMatches.length > 0) {
+          matches = fsMatches;
+          localStorage.setItem("mondial_matches", JSON.stringify(matches));
+          filterAndRenderMatches();
+        }
+      })
+      .subscribe();
+
+    // Expose functions globally for inline event handlers
+    window.handleTeamSelect = handleTeamSelect;
+    window.updateFlagPreview = updateFlagPreview;
+    window.toggleScoreInputs = toggleScoreInputs;
+    window.handleAddMatch = handleAddMatch;
+    window.startEditMatch = startEditMatch;
+    window.cancelEditMatch = cancelEditMatch;
+    window.changeScore = changeScore;
+    window.toggleMatchStatus = toggleMatchStatus;
+    window.updateMatchEvents = updateMatchEvents;
+    window.toggleRedCard = toggleRedCard;
+    window.deleteMatch = deleteMatch;
+    window.filterAndRenderMatches = filterAndRenderMatches;
+    window.confirmReset = confirmReset;
+    window.closeResetModal = closeResetModal;
+    window.resetToDefaults = resetToDefaults;
+    window.importFromAPI = importFromAPI;
+    window.toggleSimulator = toggleSimulator;
+    window.saveTheStatsApiKey = saveTheStatsApiKey;
+    window.syncWithTheStatsApi = syncWithTheStatsApi;
+  </script>
+</body>
+</html>
