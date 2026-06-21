@@ -275,18 +275,32 @@
               <i data-lucide="sparkles" class="w-3 h-3"></i> Insérer un exemple
             </button>
           </div>
-          <pre class="overflow-x-auto text-[9px] leading-tight text-slate-600">{
+          <pre class="overflow-x-auto text-[9px] leading-tight text-slate-600 max-h-[160px]">{
   "group": "Groupe A",
   "day": "today",
-  "status": "scheduled",
+  "status": "finished",
   "date": "20:00",
-  "teamA": { "name": "Mexique", "flag": "mx" },
-  "teamB": { "name": "Corée du Sud", "flag": "kr" }
+  "venueCity": "Vancouver",
+  "venueCountry": "Canada",
+  "teamA": {
+    "name": "Mexique",
+    "flag": "mx",
+    "score": 2,
+    "goals": ["R. Jimenez 24'", "H. Lozano 78'"],
+    "yellows": ["E. Alvarez 45'"]
+  },
+  "teamB": {
+    "name": "Corée du Sud",
+    "flag": "kr",
+    "score": 1,
+    "goals": ["Heung-min Son 89'"],
+    "reds": ["Min-jae Kim 90'"]
+  }
 }</pre>
         </div>
 
         <div class="space-y-3">
-          <textarea id="json-import-input" rows="6" class="w-full bg-white border border-gray-300 rounded-lg p-2.5 text-[11px] font-mono text-gray-800 focus:border-blue-500 focus:outline-none placeholder-gray-400 shadow-inner" placeholder="Collez le code JSON ici..."></textarea>
+          <textarea id="json-import-input" rows="12" class="w-full bg-white border border-gray-300 rounded-lg p-2.5 text-[10px] font-mono text-gray-800 focus:border-blue-500 focus:outline-none placeholder-gray-400 shadow-inner" placeholder="Collez le code JSON ici..."></textarea>
           
           <button type="button" onclick="importMatchJson()" class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2.5 font-semibold transition hover:shadow-lg hover:shadow-blue-500/20 flex items-center justify-center gap-1.5 text-xs cursor-pointer border border-blue-600">
             <i data-lucide="upload" class="w-3.5 h-3.5"></i>
@@ -2408,10 +2422,24 @@
       const example = {
         group: "Groupe A",
         day: "today",
-        status: "scheduled",
+        status: "finished",
         date: "20:00",
-        teamA: { name: "Brésil", flag: "br" },
-        teamB: { name: "France", flag: "fr" }
+        venueCity: "Vancouver",
+        venueCountry: "Canada",
+        teamA: {
+          name: "Mexique",
+          flag: "mx",
+          score: 2,
+          goals: ["R. Jimenez 24'", "H. Lozano 78'"],
+          yellows: ["E. Alvarez 45'"]
+        },
+        teamB: {
+          name: "Corée du Sud",
+          flag: "kr",
+          score: 1,
+          goals: ["Heung-min Son 89'"],
+          reds: ["Min-jae Kim 90'"]
+        }
       };
       textarea.value = JSON.stringify(example, null, 2);
     }
@@ -2450,29 +2478,29 @@
             teamA: {
               name: item.teamA.name,
               flag: item.teamA.flag || "un",
-              score: item.teamA.score !== undefined ? item.teamA.score : 0,
+              score: item.teamA.score !== undefined ? parseInt(item.teamA.score, 10) : 0,
               goals: item.teamA.goals || [],
               yellows: item.teamA.yellows || [],
               reds: item.teamA.reds || [],
-              yellowCard: item.teamA.yellowCard || false,
-              redCard: item.teamA.redCard || false,
+              yellowCard: item.teamA.yellowCard || (item.teamA.yellows && item.teamA.yellows.length > 0) || false,
+              redCard: item.teamA.redCard || (item.teamA.reds && item.teamA.reds.length > 0) || false,
               venueCity: item.teamA.venueCity || item.venueCity || "",
               venueCountry: item.teamA.venueCountry || item.venueCountry || "",
-              halfState: item.teamA.halfState,
-              firstHalfStart: item.teamA.firstHalfStart,
-              secondHalfStart: item.teamA.secondHalfStart,
-              coolingBreak: item.teamA.coolingBreak,
-              coolingBreakStart: item.teamA.coolingBreakStart
+              halfState: item.teamA.halfState || null,
+              firstHalfStart: item.teamA.firstHalfStart || null,
+              secondHalfStart: item.teamA.secondHalfStart || null,
+              coolingBreak: item.teamA.coolingBreak || false,
+              coolingBreakStart: item.teamA.coolingBreakStart || null
             },
             teamB: {
               name: item.teamB.name,
               flag: item.teamB.flag || "un",
-              score: item.teamB.score !== undefined ? item.teamB.score : 0,
+              score: item.teamB.score !== undefined ? parseInt(item.teamB.score, 10) : 0,
               goals: item.teamB.goals || [],
               yellows: item.teamB.yellows || [],
               reds: item.teamB.reds || [],
-              yellowCard: item.teamB.yellowCard || false,
-              redCard: item.teamB.redCard || false
+              yellowCard: item.teamB.yellowCard || (item.teamB.yellows && item.teamB.yellows.length > 0) || false,
+              redCard: item.teamB.redCard || (item.teamB.reds && item.teamB.reds.length > 0) || false
             }
           };
           
