@@ -394,6 +394,14 @@ function Index() {
   const [query, setQuery] = useState("");
   const [activeGroup, setActiveGroup] = useState<"all" | (typeof GROUPS)[number]>("all");
   const [matches, setMatches] = useState<Match[]>([]);
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTick((t) => t + 1);
+    }, 30000); // Recalculate match statuses and days every 30 seconds in real-time
+    return () => clearInterval(timer);
+  }, []);
 
   const todayStr = getLocalDateString(0);
   const yesterdayStr = getLocalDateString(-1);
@@ -456,7 +464,7 @@ function Index() {
         }
       };
     });
-  }, [matches, todayStr, yesterdayStr, tomorrowStr]);
+  }, [matches, todayStr, yesterdayStr, tomorrowStr, tick]);
 
   useEffect(() => {
     // Initial fetch from localStorage for fast startup

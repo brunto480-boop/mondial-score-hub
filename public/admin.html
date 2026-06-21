@@ -535,6 +535,15 @@
       } catch (err) {
         console.error("Error rendering matches:", err);
       }
+
+      // 7. Auto-refresh status and times in real-time every 30 seconds
+      setInterval(() => {
+        try {
+          filterAndRenderMatches();
+        } catch (e) {
+          console.error("Auto-refresh error:", e);
+        }
+      }, 30000);
     }
 
     // Execute page init
