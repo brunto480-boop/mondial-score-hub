@@ -1005,7 +1005,7 @@ function Index() {
               )}
               {filtered.some(m => m.status !== "live" && (m.rawDate < yesterdayStr || (!m.rawDate && m.day === "past"))) && (
                 <Section
-                  title="Plus tôt"
+                  title="Passé"
                   subtitle="Matchs passés"
                   matches={filtered.filter((m) => {
                     return m.status !== "live" && (m.rawDate < yesterdayStr || (!m.rawDate && m.day === "past"));
@@ -1127,7 +1127,7 @@ function MatchCard({ match }: { match: Match }) {
               </span>
             ) : (
               <span className="font-medium text-[#1a73e8]">
-                {match.date ? `${match.date}${match.time ? ` · ${match.time.replace(':', 'h')}` : ""}` : (match.day === "tomorrow" ? "Demain" : match.day === "yesterday" ? "Hier" : match.day === "today" ? "Aujourd'hui" : match.day === "past" ? "Plus tôt" : "Plus tard")}
+                {match.date ? `${match.date}${match.time ? ` · ${match.time.replace(':', 'h')}` : ""}` : (match.day === "tomorrow" ? "Demain" : match.day === "yesterday" ? "Hier" : match.day === "today" ? "Aujourd'hui" : match.day === "past" ? "Passé" : "Plus tard")}
               </span>
             )}
             {match.teamA.venueCity && (
