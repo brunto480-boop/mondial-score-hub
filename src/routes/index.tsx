@@ -54,6 +54,30 @@ const getLocalDateString = (offsetDays = 0) => {
   return `${year}-${month}-${day}`;
 };
 
+const getMatchMinute = (rawDate?: string, time?: string): string => {
+  if (!rawDate || !time) return "";
+  try {
+    const [hours, minutes] = time.split(':');
+    const kickoff = new Date(rawDate);
+    kickoff.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+    const now = new Date();
+    const diffMs = now.getTime() - kickoff.getTime();
+    if (diffMs < 0) return "0'";
+    const diffMins = Math.floor(diffMs / (60 * 1000));
+    if (diffMins < 45) {
+      return `${diffMins}'`;
+    } else if (diffMins < 60) {
+      return "Mi-temps";
+    } else if (diffMins < 105) {
+      return `${45 + (diffMins - 60)}'`;
+    } else {
+      return "90'";
+    }
+  } catch (e) {
+    return "";
+  }
+};
+
 // Helper builders (ignoring time and duration to maintain compatibility)
 const F = (id: string, group: string, day: Day, time: string, a: Team, b: Team, dur: string): Match => ({
   id, group: `Groupe ${group}`, day, status: "finished", date: time,
@@ -1024,7 +1048,7 @@ function MatchCard({ match }: { match: Match }) {
             {isLive ? (
               <span className="font-semibold text-[#d93025] flex items-center gap-1.5 animate-pulse">
                 <span className="h-1.5 w-1.5 rounded-full bg-[#d93025] inline-block" />
-                En cours{match.time ? ` · ${match.time.replace(':', 'h')}` : ""}
+                En cours{match.rawDate && match.time ? ` · ${getMatchMinute(match.rawDate, match.time)}` : (match.time ? ` · ${match.time.replace(':', 'h')}` : "")}
               </span>
             ) : finished ? (
               <span className="font-medium text-[#202124]">
