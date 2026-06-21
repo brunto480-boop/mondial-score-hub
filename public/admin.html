@@ -333,6 +333,14 @@
       return `${year}-${month}-${day}`;
     }
 
+    // Global helper for current time in 24h format (HH:MM)
+    function getCurrentTime24h() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      return `${hours}:${minutes}`;
+    }
+
     function handleDayChange() {
       const dayVal = document.getElementById("day").value;
       const dateInput = document.getElementById("match-date-input");
@@ -578,10 +586,14 @@
         console.error("Error rendering matches:", err);
       }
 
-      // Set default date input value to today
+      // Set default date and time input values to today and current hour
       const dateInput = document.getElementById("match-date-input");
       if (dateInput && !dateInput.value) {
         dateInput.value = getLocalDateString(0);
+      }
+      const timeInput = document.getElementById("match-time-input");
+      if (timeInput && !timeInput.value) {
+        timeInput.value = getCurrentTime24h();
       }
 
       // 7. Auto-refresh status and times in real-time every 30 seconds
@@ -913,7 +925,7 @@
       });
       
       document.getElementById("match-date-input").value = getLocalDateString(0);
-      document.getElementById("match-time-input").value = "";
+      document.getElementById("match-time-input").value = getCurrentTime24h();
       document.getElementById("match-venue-city").value = "";
       document.getElementById("match-venue-country").value = "États-Unis";
       toggleScoreInputs();
@@ -1607,7 +1619,7 @@
       });
 
       // Format time: "21:00"
-      const timeStr = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Europe/Paris' }).replace(':', 'h');
+      const timeStr = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Europe/Paris' });
 
       // Format rawDate: YYYY-MM-DD
       const year = d.toLocaleDateString('en-CA', { year: 'numeric', timeZone: 'Europe/Paris' });
