@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, useEffect } from "react";
-import { Search, Play, ArrowUp } from "lucide-react";
+import { Search, Play, ArrowUp, MapPin } from "lucide-react";
 import { supabase } from "../lib/supabase";
 
 export const Route = createFileRoute("/")({
@@ -22,16 +22,19 @@ type Team = {
   flag: string;
   score?: number;
   redCard?: boolean;
+  yellowCard?: boolean;
   goals?: string[];
   yellows?: string[];
   reds?: string[];
+  venueCity?: string;
+  venueCountry?: string;
 };
 
 type Match = {
   id: string;
   group: string;
   day: Day;
-  status: "finished" | "scheduled";
+  status: "finished" | "scheduled" | "live";
   time?: string;
   duration?: string;
   date?: string;
@@ -41,6 +44,15 @@ type Match = {
 };
 
 const GROUPS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"] as const;
+
+const getLocalDateString = (offsetDays = 0) => {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 // Helper builders (ignoring time and duration to maintain compatibility)
 const F = (id: string, group: string, day: Day, time: string, a: Team, b: Team, dur: string): Match => ({
@@ -345,18 +357,24 @@ const mapSupabaseRowToMatch = (row: any): Match => ({
     flag: row.team_a.flag,
     score: row.team_a.score,
     redCard: row.team_a.redCard,
+    yellowCard: row.team_a.yellowCard,
     goals: row.team_a.goals,
     yellows: row.team_a.yellows,
-    reds: row.team_a.reds
+    reds: row.team_a.reds,
+    venueCity: row.team_a.venueCity,
+    venueCountry: row.team_a.venueCountry
   },
   teamB: {
     name: row.team_b.name,
     flag: row.team_b.flag,
     score: row.team_b.score,
     redCard: row.team_b.redCard,
+    yellowCard: row.team_b.yellowCard,
     goals: row.team_b.goals,
     yellows: row.team_b.yellows,
-    reds: row.team_b.reds
+    reds: row.team_b.reds,
+    venueCity: row.team_b.venueCity,
+    venueCountry: row.team_b.venueCountry
   }
 });
 
@@ -417,7 +435,10 @@ function Index() {
                   goals: matchingLocal.teamA.goals || [],
                   yellows: matchingLocal.teamA.yellows || [],
                   reds: matchingLocal.teamA.reds || [],
-                  redCard: matchingLocal.teamA.redCard || false
+                  redCard: matchingLocal.teamA.redCard || false,
+                  yellowCard: matchingLocal.teamA.yellowCard || false,
+                  venueCity: matchingLocal.teamA.venueCity,
+                  venueCountry: matchingLocal.teamA.venueCountry
                 },
                 teamB: {
                   ...fMatch.teamB,
@@ -425,7 +446,10 @@ function Index() {
                   goals: matchingLocal.teamB.goals || [],
                   yellows: matchingLocal.teamB.yellows || [],
                   reds: matchingLocal.teamB.reds || [],
-                  redCard: matchingLocal.teamB.redCard || false
+                  redCard: matchingLocal.teamB.redCard || false,
+                  yellowCard: matchingLocal.teamB.yellowCard || false,
+                  venueCity: matchingLocal.teamB.venueCity,
+                  venueCountry: matchingLocal.teamB.venueCountry
                 }
               };
             }
@@ -491,7 +515,7 @@ function Index() {
             return { date: dateStr, rawDate, time: timeStr };
           };
 
-          const todayStr = "2026-06-20";
+          const todayStr = getLocalDateString(0);
 
           // Fetch keyless fixtures list first as seed/fallback
           console.log("Fetching fixtures from keyless TheStatsAPI...");
@@ -570,14 +594,15 @@ function Index() {
                   });
 
                   if (matchingRest) {
-                    const isFinished = ["finished", "live"].includes(matchingRest.status);
+                    const isLive = matchingRest.status === "live";
+                    const isFinished = matchingRest.status === "finished";
                     const homeScore = matchingRest.score?.home;
                     const awayScore = matchingRest.score?.away;
 
-                    if (isFinished && homeScore !== null && homeScore !== undefined && awayScore !== null && awayScore !== undefined) {
+                    if ((isFinished || isLive) && homeScore !== null && homeScore !== undefined && awayScore !== null && awayScore !== undefined) {
                       return {
                         ...kMatch,
-                        status: "finished",
+                        status: isLive ? "live" : "finished",
                         teamA: {
                           ...kMatch.teamA,
                           score: homeScore
@@ -633,6 +658,20 @@ function Index() {
 
         if (apiMatches.length > 0) {
           const dbMap = new Map(tempMatches.map((m) => [m.id, m]));
+          
+          // Enrich apiMatches with Supabase venue metadata to prevent overwrite on sync
+          apiMatches.forEach((m) => {
+            const fsMatch = dbMap.get(m.id);
+            if (fsMatch && fsMatch.teamA) {
+              if (fsMatch.teamA.venueCity) {
+                m.teamA.venueCity = fsMatch.teamA.venueCity;
+              }
+              if (fsMatch.teamA.venueCountry) {
+                m.teamA.venueCountry = fsMatch.teamA.venueCountry;
+              }
+            }
+          });
+
           const matchesToSync = apiMatches.filter((m) => {
             const fsMatch = dbMap.get(m.id);
             if (!fsMatch) return true;
@@ -644,19 +683,6 @@ function Index() {
             const apiHasScore = m.teamA.score !== undefined && m.teamB.score !== undefined;
             const fsHasScore = fsMatch.teamA.score !== undefined && fsMatch.teamB.score !== undefined;
             if (apiHasScore && !fsHasScore) return true;
-
-            // Self-healing check for Germany vs Côte d'Ivoire (won 2-1 but might show 3-1 in DB)
-            const isGermanyIvoryCoast =
-              (m.teamA.name === "Allemagne" && (m.teamB.name === "Côte d'Ivoire" || m.teamB.name === "Cote d'Ivoire")) ||
-              (m.teamA.name === "Germany" && (m.teamB.name === "Ivory Coast" || m.teamB.name === "Cote d'Ivoire"));
-            if (isGermanyIvoryCoast && fsMatch) {
-              const fsScoreA = fsMatch.teamA.score;
-              const fsScoreB = fsMatch.teamB.score;
-              if (fsScoreA !== 2 || fsScoreB !== 1) {
-                console.log("Self-healing: Germany vs Côte d'Ivoire score incorrect in Supabase. Syncing correct score (2-1) from API...");
-                return true;
-              }
-            }
 
             return false;
           });
@@ -731,7 +757,7 @@ function Index() {
 
   const filtered = useMemo(() => {
     const q = normalizeString(query.trim());
-    return matches.filter((m) => {
+    const res = matches.filter((m) => {
       if (activeGroup !== "all" && m.group !== `Groupe ${activeGroup}`) return false;
       if (!q) return true;
       return (
@@ -740,6 +766,39 @@ function Index() {
         normalizeString(m.teamB.name).includes(q)
       );
     });
+
+    const getDayPriority = (day?: string) => {
+      switch (day) {
+        case 'yesterday': return 1;
+        case 'today': return 2;
+        case 'tomorrow': return 3;
+        case 'later': return 4;
+        default: return 5;
+      }
+    };
+
+    // Stable chronological sort: rawDate/day -> time -> group -> id
+    return res.sort((a, b) => {
+      const dateA = a.rawDate || "";
+      const dateB = b.rawDate || "";
+      if (dateA && dateB) {
+        if (dateA !== dateB) return dateA.localeCompare(dateB);
+      } else {
+        const pA = getDayPriority(a.day);
+        const pB = getDayPriority(b.day);
+        if (pA !== pB) return pA - pB;
+      }
+
+      const timeA = a.time || "";
+      const timeB = b.time || "";
+      if (timeA !== timeB) return timeA.localeCompare(timeB);
+
+      const groupA = a.group || "";
+      const groupB = b.group || "";
+      if (groupA !== groupB) return groupA.localeCompare(groupB);
+
+      return (a.id || "").localeCompare(b.id || "");
+    });
   }, [matches, query, activeGroup]);
 
   const standings = useMemo(() => {
@@ -747,6 +806,14 @@ function Index() {
     const groupMatches = matches.filter((m) => m.group === `Groupe ${activeGroup}`);
     return calculateStandings(groupMatches);
   }, [matches, activeGroup]);
+
+  const todayStr = getLocalDateString(0);
+  const yesterdayStr = getLocalDateString(-1);
+  const tomorrowStr = getLocalDateString(1);
+
+  const liveMatches = useMemo(() => {
+    return filtered.filter((m) => m.status === "live");
+  }, [filtered]);
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] text-[#202124]">
@@ -791,30 +858,28 @@ function Index() {
             <Section
               title="Résultats de recherche"
               subtitle={`Matchs correspondant à "${query}"`}
-              matches={filtered.sort((a, b) => {
-                const dateA = a.rawDate || "";
-                const dateB = b.rawDate || "";
-                if (dateA !== dateB) return dateA.localeCompare(dateB);
-                const timeA = a.time || "";
-                const timeB = b.time || "";
-                return timeA.localeCompare(timeB);
-              })}
+              matches={filtered}
             />
           ) : (
             <>
+              {liveMatches.length > 0 && (
+                <Section
+                  title="En cours"
+                  subtitle="Matchs en direct"
+                  matches={liveMatches}
+                />
+              )}
               <Section
                 title="Aujourd'hui"
                 subtitle="Phase de groupes · Aujourd'hui"
                 matches={filtered.filter((m) => {
-                  const todayStr = "2026-06-20";
-                  return m.rawDate === todayStr || (!m.rawDate && m.day === "today");
+                  return m.status !== "live" && (m.rawDate === todayStr || (!m.rawDate && m.day === "today"));
                 })}
               />
               <Section
                 title="Hier"
                 subtitle="Phase de groupes · Hier"
                 matches={filtered.filter((m) => {
-                  const yesterdayStr = "2026-06-19";
                   return m.rawDate === yesterdayStr || (!m.rawDate && m.day === "yesterday");
                 })}
               />
@@ -822,7 +887,6 @@ function Index() {
                 title="Demain"
                 subtitle="Phase de groupes · Demain"
                 matches={filtered.filter((m) => {
-                  const tomorrowStr = "2026-06-21";
                   return m.rawDate === tomorrowStr || (!m.rawDate && m.day === "tomorrow");
                 })}
               />
@@ -832,14 +896,7 @@ function Index() {
           <Section
             title="Calendrier & Résultats du Groupe"
             subtitle={`Tous les matchs du Groupe ${activeGroup}`}
-            matches={filtered.sort((a, b) => {
-              const dateA = a.rawDate || "";
-              const dateB = b.rawDate || "";
-              if (dateA !== dateB) return dateA.localeCompare(dateB);
-              const timeA = a.time || "";
-              const timeB = b.time || "";
-              return timeA.localeCompare(timeB);
-            })}
+            matches={filtered}
           />
         )}
 
@@ -889,28 +946,40 @@ function Section({ title, subtitle, matches }: { title: string; subtitle: string
 function MatchCard({ match }: { match: Match }) {
   const [expanded, setExpanded] = useState(false);
   const finished = match.status === "finished";
+  const isLive = match.status === "live";
   const aWins = finished && (match.teamA.score ?? 0) > (match.teamB.score ?? 0);
   const bWins = finished && (match.teamB.score ?? 0) > (match.teamA.score ?? 0);
 
   return (
     <article
       onClick={() => setExpanded(!expanded)}
-      className="group flex flex-col rounded-xl border border-[#e5e7eb] bg-white p-4 transition hover:border-[#d2d5da] hover:shadow-sm cursor-pointer select-none"
+      className={`group flex flex-col rounded-xl border ${isLive ? "border-red-200 bg-red-50/10 shadow-sm" : "border-[#e5e7eb] bg-white"} p-4 transition hover:border-[#d2d5da] hover:shadow-sm cursor-pointer select-none`}
     >
       <div className="flex items-stretch gap-3">
         <div className="flex-1 min-w-0">
           <div className="mb-2 text-xs text-[#5f6368]">{match.group}</div>
-          <TeamRow team={match.teamA} won={aWins} finished={finished} />
+          <TeamRow team={match.teamA} won={aWins} showScore={finished || isLive} />
           <div className="my-1 h-px bg-[#f1f3f4]" />
-          <TeamRow team={match.teamB} won={bWins} finished={finished} />
-          <div className="mt-2 text-xs text-[#5f6368]">
-            {finished ? (
+          <TeamRow team={match.teamB} won={bWins} showScore={finished || isLive} />
+          <div className="mt-2 flex items-center justify-between text-xs text-[#5f6368]">
+            {isLive ? (
+              <span className="font-semibold text-[#d93025] flex items-center gap-1.5 animate-pulse">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#d93025] inline-block" />
+                En cours{match.time ? ` · ${match.time.replace(':', 'h')}` : ""}
+              </span>
+            ) : finished ? (
               <span className="font-medium text-[#202124]">
                 Terminé · FT{match.date ? ` · ${match.date}` : ""}{match.time ? ` · ${match.time.replace(':', 'h')}` : ""}
               </span>
             ) : (
               <span className="font-medium text-[#1a73e8]">
                 {match.date ? `${match.date}${match.time ? ` · ${match.time.replace(':', 'h')}` : ""}` : (match.day === "tomorrow" ? "Demain" : match.day === "yesterday" ? "Hier" : match.day === "today" ? "Aujourd'hui" : "Plus tard")}
+              </span>
+            )}
+            {match.teamA.venueCity && (
+              <span className="flex items-center gap-1 text-[11px] text-[#5f6368] bg-[#f1f3f4] px-2 py-0.5 rounded-full font-medium animate-in fade-in duration-200">
+                <MapPin size={11} className="text-[#1a73e8]" />
+                {match.teamA.venueCity}{match.teamA.venueCountry ? `, ${match.teamA.venueCountry}` : ""}
               </span>
             )}
           </div>
@@ -973,7 +1042,7 @@ function renderEvents(team: Team, rightAlign = false) {
   );
 }
 
-function TeamRow({ team, won, finished }: { team: Team; won: boolean; finished: boolean }) {
+function TeamRow({ team, won, showScore }: { team: Team; won: boolean; showScore: boolean }) {
   return (
     <div className="flex items-center gap-3 py-1">
       <img
@@ -988,10 +1057,13 @@ function TeamRow({ team, won, finished }: { team: Team; won: boolean; finished: 
       <span className={`flex-1 min-w-0 truncate text-sm ${won ? "font-semibold" : "font-normal"} text-[#202124]`}>
         {team.name}
       </span>
+      {team.yellowCard && (
+        <span className="inline-block h-3.5 w-2.5 rounded-[2px] bg-[#fabb05]" aria-label="Carton jaune" />
+      )}
       {team.redCard && (
         <span className="inline-block h-3.5 w-2.5 rounded-[2px] bg-[#d93025]" aria-label="Carton rouge" />
       )}
-      {finished && (
+      {showScore && (
         <div className="flex items-center gap-1">
           {won && <ArrowUp size={14} className="text-[#5f6368]" />}
           <span className={`w-5 text-right text-sm tabular-nums ${won ? "font-semibold text-[#202124]" : "text-[#5f6368]"}`}>

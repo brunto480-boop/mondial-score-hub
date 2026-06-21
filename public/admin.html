@@ -182,11 +182,28 @@
             </div>
           </div>
 
+          <!-- Location Info -->
+          <div class="border-t border-gray-200 pt-3 grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5" for="match-venue-city">Lieu (ex: Vancouver)</label>
+              <input id="match-venue-city" type="text" placeholder="Vancouver" required class="w-full bg-white border border-gray-300 rounded-lg px-2 py-2 text-xs text-[#202124] focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5" for="match-venue-country">Pays Organisateur</label>
+              <select id="match-venue-country" required class="w-full bg-white border border-gray-300 rounded-lg px-2 py-2 text-xs text-[#202124] focus:outline-none focus:border-blue-500">
+                <option value="États-Unis">États-Unis</option>
+                <option value="Canada">Canada</option>
+                <option value="Mexique">Mexique</option>
+              </select>
+            </div>
+          </div>
+
           <!-- Match Status -->
           <div class="border-t border-gray-200 pt-3">
             <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5" for="status">Statut du Match</label>
             <select id="status" onchange="toggleScoreInputs()" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-[#202124] focus:outline-none focus:border-blue-500">
               <option value="scheduled">Programmé (Non commencé)</option>
+              <option value="live">En cours (Live)</option>
               <option value="finished">Terminé (Afficher les scores)</option>
             </select>
           </div>
@@ -640,7 +657,7 @@
     function toggleScoreInputs() {
       const status = document.getElementById("status").value;
       const scoreContainer = document.getElementById("score-inputs-container");
-      if (status === "finished") {
+      if (status === "finished" || status === "live") {
         scoreContainer.classList.remove("hidden");
       } else {
         scoreContainer.classList.add("hidden");
@@ -661,7 +678,10 @@
       const dateVal = document.getElementById("match-date-input").value;
       const timeVal = document.getElementById("match-time-input").value;
       
-      const isFinished = statusVal === "finished";
+      const venueCityVal = document.getElementById("match-venue-city").value.trim();
+      const venueCountryVal = document.getElementById("match-venue-country").value;
+      
+      const isFinished = statusVal === "finished" || statusVal === "live";
       const scoreAVal = isFinished ? (parseInt(document.getElementById("scoreA").value) || 0) : undefined;
       const scoreBVal = isFinished ? (parseInt(document.getElementById("scoreB").value) || 0) : undefined;
       const formattedDate = dateVal ? formatFrenchDate(dateVal) : "";
@@ -679,6 +699,9 @@
           
           match.teamA.name = teamAName;
           match.teamA.flag = teamAFlag;
+          match.teamA.venueCity = venueCityVal;
+          match.teamA.venueCountry = venueCountryVal;
+          
           if (isFinished) {
             match.teamA.score = scoreAVal;
           } else {
@@ -706,6 +729,8 @@
           name: teamAName,
           flag: teamAFlag,
           goals: [], yellows: [], reds: [],
+          venueCity: venueCityVal,
+          venueCountry: venueCountryVal,
           ...(isFinished ? { score: scoreAVal } : {})
         };
         
@@ -727,7 +752,7 @@
           teamA: teamA,
           teamB: teamB
         };
-
+ 
         matches.unshift(newMatch);
         saveMatches();
         saveMatchToSupabase(newMatch);
@@ -736,13 +761,13 @@
         filterAndRenderMatches();
       }
     }
-
+ 
     function startEditMatch(matchId) {
       const match = matches.find(m => m.id === matchId);
       if (!match) return;
-
+ 
       editingMatchId = matchId;
-
+ 
       // Update form UI
       document.getElementById("form-title").innerText = "Modifier le Match";
       document.getElementById("submit-btn-text").innerText = "Sauvegarder";
@@ -753,37 +778,41 @@
         submitIcon.setAttribute("data-lucide", "save");
         lucide.createIcons();
       }
-
+ 
       // Set group select
       const grp = match.group.replace("Groupe ", "");
       document.getElementById("group").value = grp;
-
+ 
       // Set teams
       setTeamFormSelect("A", match.teamA.name, match.teamA.flag);
       setTeamFormSelect("B", match.teamB.name, match.teamB.flag);
-
+ 
       // Set day, status and date
       document.getElementById("day").value = match.day;
       document.getElementById("status").value = match.status;
       document.getElementById("match-date-input").value = match.rawDate || "";
       document.getElementById("match-time-input").value = match.time || "";
       
+      // Set venue
+      document.getElementById("match-venue-city").value = match.teamA.venueCity || "";
+      document.getElementById("match-venue-country").value = match.teamA.venueCountry || "États-Unis";
+      
       toggleScoreInputs();
       if (match.status === "finished") {
         document.getElementById("scoreA").value = match.teamA.score !== undefined ? match.teamA.score : 0;
         document.getElementById("scoreB").value = match.teamB.score !== undefined ? match.teamB.score : 0;
       }
-
+ 
       // Scroll to form
       document.getElementById("add-match-form").scrollIntoView({ behavior: 'smooth' });
     }
-
+ 
     function setTeamFormSelect(type, name, flag) {
       const select = document.getElementById(`team${type}-select`);
       const customNameInput = document.getElementById(`team${type}-custom-name`);
       const customFlagInput = document.getElementById(`team${type}-custom-flag`);
       const preview = document.getElementById(`team${type}-flag-preview`);
-
+ 
       // Check if predefined flag
       const isPredefined = PREDEFINED_TEAMS.some(t => t.flag === flag);
       if (isPredefined) {
@@ -804,7 +833,7 @@
         preview.classList.remove("hidden");
       }
     }
-
+ 
     function cancelEditMatch() {
       editingMatchId = null;
       document.getElementById("form-title").innerText = "Ajouter un Match";
@@ -828,6 +857,8 @@
       
       document.getElementById("match-date-input").value = "";
       document.getElementById("match-time-input").value = "";
+      document.getElementById("match-venue-city").value = "";
+      document.getElementById("match-venue-country").value = "États-Unis";
       toggleScoreInputs();
     }
 
@@ -835,7 +866,7 @@
       const idx = matches.findIndex(m => m.id === matchId);
       if (idx !== -1) {
         const match = matches[idx];
-        if (match.status !== "finished") {
+        if (match.status !== "finished" && match.status !== "live") {
           match.status = "finished";
         }
         
@@ -856,19 +887,21 @@
       }
     }
 
-    // Toggle status (scheduled / finished)
+    // Toggle status (scheduled / live / finished)
     function toggleMatchStatus(matchId) {
       const idx = matches.findIndex(m => m.id === matchId);
       if (idx !== -1) {
         const match = matches[idx];
-        if (match.status === "finished") {
+        if (match.status === "scheduled") {
+          match.status = "live";
+          match.teamA.score = 0;
+          match.teamB.score = 0;
+        } else if (match.status === "live") {
+          match.status = "finished";
+        } else {
           match.status = "scheduled";
           delete match.teamA.score;
           delete match.teamB.score;
-        } else {
-          match.status = "finished";
-          match.teamA.score = 0;
-          match.teamB.score = 0;
         }
         saveMatches();
         saveMatchToSupabase(match);
@@ -889,8 +922,17 @@
           .filter(val => val.length > 0);
           
         team[eventType] = arr;
+
+        // Auto-detect redCard/yellowCard if modifying reds/yellows
+        if (eventType === 'reds') {
+          team.redCard = arr.length > 0;
+        } else if (eventType === 'yellows') {
+          team.yellowCard = arr.length > 0;
+        }
+
         saveMatches();
         saveMatchToSupabase(match);
+        filterAndRenderMatches();
       }
     }
 
@@ -908,6 +950,20 @@
       }
     }
 
+    // Toggle Yellow Card status
+    function toggleYellowCard(matchId, team) {
+      const idx = matches.findIndex(m => m.id === matchId);
+      if (idx !== -1) {
+        const match = matches[idx];
+        const teamKey = team === "A" ? "teamA" : "teamB";
+        match[teamKey].yellowCard = !match[teamKey].yellowCard;
+        saveMatches();
+        saveMatchToSupabase(match);
+        filterAndRenderMatches();
+        showToast("Carton jaune mis à jour");
+      }
+    }
+
     // Delete Match
     function deleteMatch(matchId) {
       if (confirm("Voulez-vous vraiment supprimer ce match ?")) {
@@ -916,6 +972,17 @@
         deleteMatchFromSupabase(matchId);
         filterAndRenderMatches();
         showToast("Match supprimé");
+      }
+    }
+
+    // Day priority for stable sorting
+    function getDayPriority(day) {
+      switch (day) {
+        case 'yesterday': return 1;
+        case 'today': return 2;
+        case 'tomorrow': return 3;
+        case 'later': return 4;
+        default: return 5;
       }
     }
 
@@ -937,6 +1004,29 @@
         }
         return true;
       });
+
+      // Stable chronological sorting: rawDate/day -> time -> group -> id
+      filtered.sort((a, b) => {
+        const dateA = a.rawDate || "";
+        const dateB = b.rawDate || "";
+        if (dateA && dateB) {
+          if (dateA !== dateB) return dateA.localeCompare(dateB);
+        } else {
+          const pA = getDayPriority(a.day);
+          const pB = getDayPriority(b.day);
+          if (pA !== pB) return pA - pB;
+        }
+
+        const timeA = a.time || "";
+        const timeB = b.time || "";
+        if (timeA !== timeB) return timeA.localeCompare(timeB);
+
+        const groupA = a.group || "";
+        const groupB = b.group || "";
+        if (groupA !== groupB) return groupA.localeCompare(groupB);
+
+        return (a.id || "").localeCompare(b.id || "");
+      });
       
       document.getElementById("match-count").innerText = filtered.length;
 
@@ -951,6 +1041,7 @@
       let html = "";
       filtered.forEach((m) => {
         const isFinished = m.status === "finished";
+        const isLive = m.status === "live";
         const scoreA = m.teamA.score !== undefined ? m.teamA.score : "-";
         const scoreB = m.teamB.score !== undefined ? m.teamB.score : "-";
         
@@ -967,7 +1058,10 @@
             <!-- Card Header -->
             <div class="flex items-center justify-between text-xs text-slate-500 mb-3 pb-2 border-b border-gray-100">
               <span class="font-semibold bg-gray-100 px-2 py-0.5 rounded text-gray-700">${m.group}</span>
-              <span class="capitalize font-medium text-slate-500">${translateDay(m.day)}${m.date ? ` (${m.date}${m.time ? ` · ${m.time.replace(':', 'h')}` : ''})` : ''}</span>
+              <div class="flex flex-col items-end text-right">
+                <span class="capitalize font-medium text-slate-500">${translateDay(m.day)}${m.date ? ` (${m.date}${m.time ? ` · ${m.time.replace(':', 'h')}` : ''})` : ''}</span>
+                ${m.teamA.venueCity ? `<span class="text-[10px] text-slate-400 mt-0.5 font-medium flex items-center gap-0.5">📍 ${m.teamA.venueCity}${m.teamA.venueCountry ? `, ${m.teamA.venueCountry}` : ''}</span>` : ''}
+              </div>
             </div>
             
             <!-- Teams and Scores -->
@@ -978,6 +1072,9 @@
                   <div class="flex items-center gap-2">
                     <img src="https://flagcdn.com/w40/${m.teamA.flag}.png" width="20" height="14" class="rounded-sm object-cover ring-1 ring-black/5" alt="">
                     <span class="text-sm font-semibold text-gray-800">${m.teamA.name}</span>
+                    <button onclick="toggleYellowCard('${m.id}', 'A')" class="px-1.5 py-0.5 rounded text-[9px] ${m.teamA.yellowCard ? 'bg-yellow-500 text-black font-bold' : 'bg-gray-100 hover:bg-gray-250 text-gray-500'} transition" title="Activer carton jaune rapide">
+                      CJ
+                    </button>
                     <button onclick="toggleRedCard('${m.id}', 'A')" class="px-1.5 py-0.5 rounded text-[9px] ${m.teamA.redCard ? 'bg-red-500 text-white font-bold' : 'bg-gray-100 hover:bg-gray-250 text-gray-500'} transition" title="Activer carton rouge rapide">
                       CR
                     </button>
@@ -986,7 +1083,7 @@
                   <div class="flex items-center gap-1.5">
                     <button onclick="changeScore('${m.id}', 'A', -1)" class="w-6 h-6 rounded bg-gray-150 hover:bg-gray-200 text-gray-600 font-bold flex items-center justify-center text-xs transition">-</button>
                     <span class="w-8 text-center text-base font-bold text-gray-800 tabular-nums">${scoreA}</span>
-                    <button onclick="changeScore('${m.id}', 'A', 1)" class="w-6 h-6 rounded bg-gray-150 hover:bg-gray-200 text-gray-600 font-bold flex items-center justify-center text-xs transition">+</button>
+                    <button onclick="changeScore('${m.id}', 'A', 1)" class="w-6 h-6 rounded bg-gray-150 hover:bg-gray-250 text-gray-600 font-bold flex items-center justify-center text-xs transition">+</button>
                   </div>
                 </div>
 
@@ -1009,6 +1106,9 @@
                   <div class="flex items-center gap-2">
                     <img src="https://flagcdn.com/w40/${m.teamB.flag}.png" width="20" height="14" class="rounded-sm object-cover ring-1 ring-black/5" alt="">
                     <span class="text-sm font-semibold text-gray-800">${m.teamB.name}</span>
+                    <button onclick="toggleYellowCard('${m.id}', 'B')" class="px-1.5 py-0.5 rounded text-[9px] ${m.teamB.yellowCard ? 'bg-yellow-500 text-black font-bold' : 'bg-gray-100 hover:bg-gray-250 text-gray-500'} transition" title="Activer carton jaune rapide">
+                      CJ
+                    </button>
                     <button onclick="toggleRedCard('${m.id}', 'B')" class="px-1.5 py-0.5 rounded text-[9px] ${m.teamB.redCard ? 'bg-red-500 text-white font-bold' : 'bg-gray-100 hover:bg-gray-250 text-gray-500'} transition" title="Activer carton rouge rapide">
                       CR
                     </button>
@@ -1034,9 +1134,9 @@
 
             <!-- Card Actions -->
             <div class="flex items-center justify-between mt-5 pt-3 border-t border-gray-100">
-              <button onclick="toggleMatchStatus('${m.id}')" class="text-xs flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border ${isFinished ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-gray-100 border-gray-200 text-gray-600'} hover:brightness-95 transition">
-                <i data-lucide="${isFinished ? 'check-circle' : 'clock'}" class="w-3.5 h-3.5"></i>
-                <span>${isFinished ? 'Terminé' : 'Programmé'}</span>
+              <button onclick="toggleMatchStatus('${m.id}')" class="text-xs flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border ${isFinished ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : isLive ? 'bg-red-50 border-red-200 text-red-700 font-semibold animate-pulse' : 'bg-gray-100 border-gray-200 text-gray-600'} hover:brightness-95 transition">
+                <i data-lucide="${isFinished ? 'check-circle' : isLive ? 'play' : 'clock'}" class="w-3.5 h-3.5"></i>
+                <span>${isFinished ? 'Terminé' : isLive ? 'En cours' : 'Programmé'}</span>
               </button>
               
               <div class="flex items-center gap-1.5">
@@ -1394,7 +1494,15 @@
         }
 
         const fixtures = result.fixtures;
-        const todayStr = "2026-06-20";
+        const getLocalDateString = (offsetDays = 0) => {
+          const d = new Date();
+          d.setDate(d.getDate() + offsetDays);
+          const year = d.getFullYear();
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        };
+        const todayStr = getLocalDateString(0);
 
         let mappedMatches = fixtures.map((item) => {
           const dateInput = item.kickoffUtc || item.date;
@@ -1455,12 +1563,24 @@
             newMatch.teamA.yellows = matchingLocal.teamA.yellows || [];
             newMatch.teamA.reds = matchingLocal.teamA.reds || [];
             newMatch.teamA.redCard = matchingLocal.teamA.redCard || false;
+            newMatch.teamA.yellowCard = matchingLocal.teamA.yellowCard || false;
 
             newMatch.teamB.score = matchingLocal.teamB.score;
             newMatch.teamB.goals = matchingLocal.teamB.goals || [];
             newMatch.teamB.yellows = matchingLocal.teamB.yellows || [];
             newMatch.teamB.reds = matchingLocal.teamB.reds || [];
             newMatch.teamB.redCard = matchingLocal.teamB.redCard || false;
+            newMatch.teamB.yellowCard = matchingLocal.teamB.yellowCard || false;
+          }
+
+          const existingMatch = matches.find(em => em.id === newMatch.id);
+          if (existingMatch && existingMatch.teamA) {
+            if (existingMatch.teamA.venueCity) {
+              newMatch.teamA.venueCity = existingMatch.teamA.venueCity;
+            }
+            if (existingMatch.teamA.venueCountry) {
+              newMatch.teamA.venueCountry = existingMatch.teamA.venueCountry;
+            }
           }
 
           return newMatch;
@@ -1552,7 +1672,15 @@
         const localMatches = await response.json();
         if (!Array.isArray(localMatches)) throw new Error("Invalid API response format");
 
-        const todayStr = "2026-06-20";
+        const getLocalDateString = (offsetDays = 0) => {
+          const d = new Date();
+          d.setDate(d.getDate() + offsetDays);
+          const year = d.getFullYear();
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        };
+        const todayStr = getLocalDateString(0);
 
         // Map local matches to stable IDs by matching team names from fixtures.json
         const mapped = fData.fixtures.map((fItem) => {
@@ -1614,12 +1742,24 @@
             newMatch.teamA.yellows = matchingLocal.teamA.yellows || [];
             newMatch.teamA.reds = matchingLocal.teamA.reds || [];
             newMatch.teamA.redCard = matchingLocal.teamA.redCard || false;
+            newMatch.teamA.yellowCard = matchingLocal.teamA.yellowCard || false;
 
             newMatch.teamB.score = matchingLocal.teamB.score;
             newMatch.teamB.goals = matchingLocal.teamB.goals || [];
             newMatch.teamB.yellows = matchingLocal.teamB.yellows || [];
             newMatch.teamB.reds = matchingLocal.teamB.reds || [];
             newMatch.teamB.redCard = matchingLocal.teamB.redCard || false;
+            newMatch.teamB.yellowCard = matchingLocal.teamB.yellowCard || false;
+          }
+
+          const existingMatch = matches.find(em => em.id === newMatch.id);
+          if (existingMatch && existingMatch.teamA) {
+            if (existingMatch.teamA.venueCity) {
+              newMatch.teamA.venueCity = existingMatch.teamA.venueCity;
+            }
+            if (existingMatch.teamA.venueCountry) {
+              newMatch.teamA.venueCountry = existingMatch.teamA.venueCountry;
+            }
           }
 
           return newMatch;
@@ -1663,6 +1803,7 @@
     window.toggleMatchStatus = toggleMatchStatus;
     window.updateMatchEvents = updateMatchEvents;
     window.toggleRedCard = toggleRedCard;
+    window.toggleYellowCard = toggleYellowCard;
     window.deleteMatch = deleteMatch;
     window.filterAndRenderMatches = filterAndRenderMatches;
     window.confirmReset = confirmReset;
