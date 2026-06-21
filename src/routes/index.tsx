@@ -905,19 +905,19 @@ function Index() {
   useEffect(() => {
     if (matches.length > 0 && !hasScrolledOnLoad.current) {
       const timer = setTimeout(() => {
-        const liveSection = document.getElementById("section-en-cours");
-        if (liveSection) {
-          liveSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        const targetSection = document.getElementById("section-en-cours") || document.getElementById("section-aujourd-hui");
+        if (targetSection) {
+          const header = document.querySelector("header");
+          const headerHeight = header ? header.offsetHeight : 80;
+          const elementTop = targetSection.getBoundingClientRect().top + (window.scrollY || window.pageYOffset || 0);
+          
+          window.scrollTo({
+            top: elementTop - headerHeight - 16,
+            behavior: "smooth",
+          });
           hasScrolledOnLoad.current = true;
-          return;
         }
-
-        const todaySection = document.getElementById("section-aujourd-hui");
-        if (todaySection) {
-          todaySection.scrollIntoView({ behavior: "smooth", block: "start" });
-          hasScrolledOnLoad.current = true;
-        }
-      }, 300);
+      }, 400);
       return () => clearTimeout(timer);
     }
   }, [matches]);
