@@ -898,7 +898,7 @@ function Index() {
             {GROUPS.map((g) => (
               <GroupTab
                 key={g}
-                label={g}
+                label={`Groupe ${g}`}
                 active={activeGroup === g}
                 onClick={() => setActiveGroup(g)}
               />
@@ -970,14 +970,11 @@ function Index() {
 }
 
 function GroupTab({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
-  const isAll = label === "Tous";
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`shrink-0 rounded-full border text-xs sm:text-sm font-medium transition duration-200 ${
-        isAll ? "px-4 py-1.5" : "w-8 h-8 flex items-center justify-center"
-      } ${
+      className={`shrink-0 rounded-full border text-[11px] sm:text-sm font-medium transition duration-200 px-3 py-1 sm:px-4 sm:py-1.5 ${
         active
           ? "border-[#1a73e8] bg-[#e8f0fe] text-[#1a73e8]"
           : "border-[#e5e7eb] bg-white text-[#5f6368] hover:border-[#d2d5da] hover:text-[#202124]"
