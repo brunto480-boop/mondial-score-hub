@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { Search, Play, ArrowUp, MapPin } from "lucide-react";
 import { supabase } from "../lib/supabase";
 
@@ -455,6 +455,7 @@ function Index() {
   const [activeGroup, setActiveGroup] = useState<"all" | (typeof GROUPS)[number]>("all");
   const [matches, setMatches] = useState<Match[]>([]);
   const [tick, setTick] = useState(0);
+  const hasScrolledOnLoad = useRef(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -901,6 +902,26 @@ function Index() {
     return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
+  useEffect(() => {
+    if (matches.length > 0 && !hasScrolledOnLoad.current) {
+      const timer = setTimeout(() => {
+        const liveSection = document.getElementById("section-en-cours");
+        if (liveSection) {
+          liveSection.scrollIntoView({ behavior: "smooth", block: "start" });
+          hasScrolledOnLoad.current = true;
+          return;
+        }
+
+        const todaySection = document.getElementById("section-aujourd-hui");
+        if (todaySection) {
+          todaySection.scrollIntoView({ behavior: "smooth", block: "start" });
+          hasScrolledOnLoad.current = true;
+        }
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [matches]);
+
   const filtered = useMemo(() => {
     const q = normalizeString(query.trim());
     const res = processedMatches.filter((m) => {
@@ -1007,12 +1028,14 @@ function Index() {
               )}
               {liveMatches.length > 0 && (
                 <Section
+                  id="section-en-cours"
                   title="En cours"
                   subtitle="Matchs en direct"
                   matches={liveMatches}
                 />
               )}
               <Section
+                id="section-aujourd-hui"
                 title="Aujourd'hui"
                 subtitle="Phase de groupes · Aujourd'hui"
                 matches={filtered.filter((m) => {
@@ -1071,10 +1094,10 @@ function GroupTab({ label, active, onClick }: { label: string; active: boolean; 
   );
 }
 
-function Section({ title, subtitle, matches }: { title: string; subtitle: string; matches: Match[] }) {
+function Section({ id, title, subtitle, matches }: { id?: string; title: string; subtitle: string; matches: Match[] }) {
   if (matches.length === 0) return null;
   return (
-    <section className="mb-10 animate-in fade-in duration-300">
+    <section id={id} className="mb-10 animate-in fade-in duration-300 scroll-mt-24">
       <div className="mb-3 flex items-baseline gap-3">
         <h2 className="text-base font-medium text-[#202124]">{title}</h2>
         <span className="text-xs text-[#5f6368]">{subtitle}</span>
