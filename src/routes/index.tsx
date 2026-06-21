@@ -395,6 +395,69 @@ function Index() {
   const [activeGroup, setActiveGroup] = useState<"all" | (typeof GROUPS)[number]>("all");
   const [matches, setMatches] = useState<Match[]>([]);
 
+  const todayStr = getLocalDateString(0);
+  const yesterdayStr = getLocalDateString(-1);
+  const tomorrowStr = getLocalDateString(1);
+
+  const processedMatches = useMemo(() => {
+    return matches.map((m) => {
+      let dayVal = m.day || "later";
+      if (m.rawDate) {
+        if (m.rawDate === todayStr) {
+          dayVal = "today";
+        } else if (m.rawDate === yesterdayStr) {
+          dayVal = "yesterday";
+        } else if (m.rawDate === tomorrowStr) {
+          dayVal = "tomorrow";
+        } else {
+          dayVal = "later";
+        }
+      }
+
+      let statusVal = m.status;
+      if (m.status === "scheduled" && m.rawDate && m.time) {
+        try {
+          const [hours, minutes] = m.time.split(':');
+          const kickoff = new Date(m.rawDate);
+          kickoff.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+          const now = new Date();
+          const diffMs = now.getTime() - kickoff.getTime();
+          if (diffMs >= 0) {
+            const matchDurationMs = 105 * 60 * 1000;
+            if (diffMs < matchDurationMs) {
+              statusVal = "live";
+            } else {
+              statusVal = "finished";
+            }
+          }
+        } catch (e) {
+          console.error("Auto status calculation error:", e);
+        }
+      }
+
+      let scoreA = m.teamA.score;
+      let scoreB = m.teamB.score;
+      if (statusVal !== "scheduled") {
+        if (scoreA === undefined || scoreA === null) scoreA = 0;
+        if (scoreB === undefined || scoreB === null) scoreB = 0;
+      }
+
+      return {
+        ...m,
+        day: dayVal,
+        status: statusVal,
+        teamA: {
+          ...m.teamA,
+          score: scoreA
+        },
+        teamB: {
+          ...m.teamB,
+          score: scoreB
+        }
+      };
+    });
+  }, [matches, todayStr, yesterdayStr, tomorrowStr]);
+
   useEffect(() => {
     // Initial fetch from localStorage for fast startup
     const stored = localStorage.getItem("mondial_matches");
@@ -757,7 +820,7 @@ function Index() {
 
   const filtered = useMemo(() => {
     const q = normalizeString(query.trim());
-    const res = matches.filter((m) => {
+    const res = processedMatches.filter((m) => {
       if (activeGroup !== "all" && m.group !== `Groupe ${activeGroup}`) return false;
       if (!q) return true;
       return (
@@ -767,27 +830,19 @@ function Index() {
       );
     });
 
-    const getDayPriority = (day?: string) => {
-      switch (day) {
-        case 'yesterday': return 1;
-        case 'today': return 2;
-        case 'tomorrow': return 3;
-        case 'later': return 4;
-        default: return 5;
-      }
+    const getSortableDate = (m: Match) => {
+      if (m.rawDate) return m.rawDate;
+      if (m.day === "yesterday") return yesterdayStr;
+      if (m.day === "today") return todayStr;
+      if (m.day === "tomorrow") return tomorrowStr;
+      return "2026-12-31";
     };
 
-    // Stable chronological sort: rawDate/day -> time -> group -> id
+    // Stable chronological sort: date -> time -> group -> id
     return res.sort((a, b) => {
-      const dateA = a.rawDate || "";
-      const dateB = b.rawDate || "";
-      if (dateA && dateB) {
-        if (dateA !== dateB) return dateA.localeCompare(dateB);
-      } else {
-        const pA = getDayPriority(a.day);
-        const pB = getDayPriority(b.day);
-        if (pA !== pB) return pA - pB;
-      }
+      const dateA = getSortableDate(a);
+      const dateB = getSortableDate(b);
+      if (dateA !== dateB) return dateA.localeCompare(dateB);
 
       const timeA = a.time || "";
       const timeB = b.time || "";
@@ -799,17 +854,13 @@ function Index() {
 
       return (a.id || "").localeCompare(b.id || "");
     });
-  }, [matches, query, activeGroup]);
+  }, [processedMatches, query, activeGroup, todayStr, yesterdayStr, tomorrowStr]);
 
   const standings = useMemo(() => {
     if (activeGroup === "all") return [];
-    const groupMatches = matches.filter((m) => m.group === `Groupe ${activeGroup}`);
+    const groupMatches = processedMatches.filter((m) => m.group === `Groupe ${activeGroup}`);
     return calculateStandings(groupMatches);
-  }, [matches, activeGroup]);
-
-  const todayStr = getLocalDateString(0);
-  const yesterdayStr = getLocalDateString(-1);
-  const tomorrowStr = getLocalDateString(1);
+  }, [processedMatches, activeGroup]);
 
   const liveMatches = useMemo(() => {
     return filtered.filter((m) => m.status === "live");

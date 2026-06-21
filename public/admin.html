@@ -887,28 +887,7 @@
       }
     }
 
-    // Toggle status (scheduled / live / finished)
-    function toggleMatchStatus(matchId) {
-      const idx = matches.findIndex(m => m.id === matchId);
-      if (idx !== -1) {
-        const match = matches[idx];
-        if (match.status === "scheduled") {
-          match.status = "live";
-          match.teamA.score = 0;
-          match.teamB.score = 0;
-        } else if (match.status === "live") {
-          match.status = "finished";
-        } else {
-          match.status = "scheduled";
-          delete match.teamA.score;
-          delete match.teamB.score;
-        }
-        saveMatches();
-        saveMatchToSupabase(match);
-        filterAndRenderMatches();
-        showToast("Statut du match modifié");
-      }
-    }
+
 
     // Direct Event Actions (buteurs, cartons)
     function updateMatchEvents(matchId, teamType, eventType, csvString) {
