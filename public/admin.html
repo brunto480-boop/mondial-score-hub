@@ -866,8 +866,13 @@
       const idx = matches.findIndex(m => m.id === matchId);
       if (idx !== -1) {
         const match = matches[idx];
+        const currentStatus = getEffectiveMatch(match).status;
         if (match.status !== "finished" && match.status !== "live") {
-          match.status = "finished";
+          if (currentStatus === "live") {
+            match.status = "live";
+          } else {
+            match.status = "finished";
+          }
         }
         
         if (match.teamA.score === undefined) {
