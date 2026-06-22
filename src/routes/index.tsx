@@ -33,6 +33,10 @@ type Team = {
   halfState?: "1st" | "halftime" | "2nd";
   firstHalfStart?: string;
   secondHalfStart?: string;
+  liveTracking?: boolean;
+  isExtraTime?: boolean;
+  isPenalties?: boolean;
+  penaltiesScore?: number;
 };
 
 type Match = {
@@ -87,6 +91,9 @@ const getMatchMinute = (match: Match): string => {
     const end = coolingBreakActive && coolingBreakStart ? new Date(coolingBreakStart) : new Date();
     const diffMs = end.getTime() - start.getTime();
     const diffMins = Math.max(0, Math.floor(diffMs / (60 * 1000)));
+    if (match.teamA.isExtraTime) {
+      return `${45 + diffMins}'`;
+    }
     if (diffMins <= 45) {
       return `${45 + diffMins}'`;
     } else {
@@ -97,19 +104,30 @@ const getMatchMinute = (match: Match): string => {
 };
 
 const getLiveStatusText = (match: Match): string => {
+  if (match.teamA.liveTracking !== true) {
+    return "Match en cours, nous n'avons pas de suivi en direct";
+  }
+  if (match.teamA.isPenalties) {
+    return "Tirs au but";
+  }
   const halfState = match.teamA.halfState || "1st";
   const coolingBreakActive = match.teamA.coolingBreak;
+
+  let suffix = "";
+  if (match.teamA.isExtraTime) {
+    suffix = " (A.P.)";
+  }
 
   if (halfState === "1st" && !match.teamA.firstHalfStart) {
     return "En attente du coup d'envoi";
   }
   if (coolingBreakActive) {
-    return `Pause fraîcheur · ${getMatchMinute(match)}`;
+    return `Pause fraîcheur · ${getMatchMinute(match)}${suffix}`;
   }
   if (halfState === "halftime") {
-    return "Mi-temps · 45'";
+    return `Mi-temps · 45'${suffix}`;
   }
-  return `En cours · ${getMatchMinute(match)}`;
+  return `En cours · ${getMatchMinute(match)}${suffix}`;
 };
 
 // Helper builders (ignoring time and duration to maintain compatibility)
@@ -406,7 +424,7 @@ const mapSupabaseRowToMatch = (row: any): Match => ({
   id: row.id,
   group: row.group_name,
   day: row.day as Day,
-  status: row.status as "finished" | "scheduled",
+  status: row.status as "finished" | "scheduled" | "live",
   date: row.date || undefined,
   time: row.time || undefined,
   rawDate: row.raw_date || undefined,
@@ -425,7 +443,11 @@ const mapSupabaseRowToMatch = (row: any): Match => ({
     coolingBreakStart: row.team_a.coolingBreakStart,
     halfState: row.team_a.halfState,
     firstHalfStart: row.team_a.firstHalfStart,
-    secondHalfStart: row.team_a.secondHalfStart
+    secondHalfStart: row.team_a.secondHalfStart,
+    liveTracking: row.team_a.liveTracking,
+    isExtraTime: row.team_a.isExtraTime,
+    isPenalties: row.team_a.isPenalties,
+    penaltiesScore: row.team_a.penaltiesScore
   },
   teamB: {
     name: row.team_b.name,
@@ -437,7 +459,8 @@ const mapSupabaseRowToMatch = (row: any): Match => ({
     yellows: row.team_b.yellows,
     reds: row.team_b.reds,
     venueCity: row.team_b.venueCity,
-    venueCountry: row.team_b.venueCountry
+    venueCountry: row.team_b.venueCountry,
+    penaltiesScore: row.team_b.penaltiesScore
   }
 });
 
@@ -455,10 +478,14 @@ const mapMatchToSupabaseRow = (match: Match): any => ({
 
 function Index() {
   const [query, setQuery] = useState("");
+  const [activeTab, setActiveTab] = useState<"all" | "group_stage" | "knockout_stage">("all");
   const [activeGroup, setActiveGroup] = useState<"all" | (typeof GROUPS)[number]>("all");
+  const [activeKnockoutRound, setActiveKnockoutRound] = useState<"all" | "round_of_32" | "round_of_16" | "quarter_finals" | "semi_finals" | "final">("all");
   const [matches, setMatches] = useState<Match[]>([]);
   const [tick, setTick] = useState(0);
   const hasScrolledOnLoad = useRef(false);
+  const [livePopup, setLivePopup] = useState<{ teamA: string; teamB: string; id: string } | null>(null);
+  const shownPopups = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -819,6 +846,21 @@ function Index() {
               if (fsMatch.teamA.secondHalfStart !== undefined) {
                 m.teamA.secondHalfStart = fsMatch.teamA.secondHalfStart;
               }
+              if (fsMatch.teamA.liveTracking !== undefined) {
+                m.teamA.liveTracking = fsMatch.teamA.liveTracking;
+              }
+              if (fsMatch.teamA.isExtraTime !== undefined) {
+                m.teamA.isExtraTime = fsMatch.teamA.isExtraTime;
+              }
+              if (fsMatch.teamA.isPenalties !== undefined) {
+                m.teamA.isPenalties = fsMatch.teamA.isPenalties;
+              }
+              if (fsMatch.teamA.penaltiesScore !== undefined) {
+                m.teamA.penaltiesScore = fsMatch.teamA.penaltiesScore;
+              }
+              if (fsMatch.teamB && fsMatch.teamB.penaltiesScore !== undefined) {
+                m.teamB.penaltiesScore = fsMatch.teamB.penaltiesScore;
+              }
             }
           });
 
@@ -925,10 +967,61 @@ function Index() {
     }
   }, [matches]);
 
+  useEffect(() => {
+    if (processedMatches.length === 0) return;
+    
+    const liveMatchesList = processedMatches.filter(m => m.status === "live");
+    const newLiveMatch = liveMatchesList.find(m => !shownPopups.current.has(m.id));
+    
+    if (newLiveMatch) {
+      setLivePopup({
+        id: newLiveMatch.id,
+        teamA: newLiveMatch.teamA.name,
+        teamB: newLiveMatch.teamB.name
+      });
+      shownPopups.current.add(newLiveMatch.id);
+      
+      const timer = setTimeout(() => {
+        setLivePopup(null);
+      }, 7000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [processedMatches]);
+
+  const handlePopupClick = (matchId: string) => {
+    const el = document.getElementById("section-en-cours");
+    if (el) {
+      const header = document.querySelector("header");
+      const headerHeight = header ? header.offsetHeight : 80;
+      const elementTop = el.getBoundingClientRect().top + (window.scrollY || window.pageYOffset || 0);
+      
+      window.scrollTo({
+        top: elementTop - headerHeight - 16,
+        behavior: "smooth",
+      });
+    }
+    setLivePopup(null);
+  };
+
   const filtered = useMemo(() => {
     const q = normalizeString(query.trim());
     const res = processedMatches.filter((m) => {
-      if (activeGroup !== "all" && m.group !== `Groupe ${activeGroup}`) return false;
+      if (activeTab === "group_stage") {
+        if (!m.group.startsWith("Groupe ")) return false;
+        if (activeGroup !== "all" && m.group !== `Groupe ${activeGroup}`) return false;
+      } else if (activeTab === "knockout_stage") {
+        if (m.group.startsWith("Groupe ")) return false;
+        if (activeKnockoutRound !== "all") {
+          const groupLower = m.group.toLowerCase();
+          if (activeKnockoutRound === "round_of_32" && !groupLower.includes("seizième")) return false;
+          if (activeKnockoutRound === "round_of_16" && !groupLower.includes("huitième")) return false;
+          if (activeKnockoutRound === "quarter_finals" && !groupLower.includes("quart")) return false;
+          if (activeKnockoutRound === "semi_finals" && !groupLower.includes("demi") && !groupLower.includes("3e")) return false;
+          if (activeKnockoutRound === "final" && (!groupLower.includes("finale") || groupLower.includes("demi"))) return false;
+        }
+      }
+
       if (!q) return true;
       return (
         normalizeString(m.group).includes(q) ||
@@ -961,7 +1054,24 @@ function Index() {
 
       return (a.id || "").localeCompare(b.id || "");
     });
-  }, [processedMatches, query, activeGroup, todayStr, yesterdayStr, tomorrowStr]);
+  }, [processedMatches, query, activeTab, activeGroup, activeKnockoutRound, todayStr, yesterdayStr, tomorrowStr]);
+
+  const handleTabChange = (tab: "all" | "group_stage" | "knockout_stage") => {
+    setActiveTab(tab);
+    setActiveGroup("all");
+    setActiveKnockoutRound("all");
+  };
+
+  const getKnockoutRoundTitle = (round: string) => {
+    switch (round) {
+      case "round_of_32": return "1/16 de finale";
+      case "round_of_16": return "1/8 de finale";
+      case "quarter_finals": return "Quarts de finale";
+      case "semi_finals": return "Demi-finales (et match 3e place)";
+      case "final": return "Finale";
+      default: return "Phases finales";
+    }
+  };
 
   const standings = useMemo(() => {
     if (activeGroup === "all") return [];
@@ -993,25 +1103,44 @@ function Index() {
           </div>
 
           <nav className="mt-3 flex flex-wrap gap-1.5 sm:gap-2">
-            <GroupTab label="Tous" active={activeGroup === "all"} onClick={() => setActiveGroup("all")} />
-            {GROUPS.map((g) => (
-              <GroupTab
-                key={g}
-                label={`Groupe ${g}`}
-                active={activeGroup === g}
-                onClick={() => setActiveGroup(g)}
-              />
-            ))}
+            <GroupTab label="Tous" active={activeTab === "all"} onClick={() => handleTabChange("all")} />
+            <GroupTab label="Phase de groupes" active={activeTab === "group_stage"} onClick={() => handleTabChange("group_stage")} />
+            <GroupTab label="Phase finale" active={activeTab === "knockout_stage"} onClick={() => handleTabChange("knockout_stage")} />
           </nav>
+
+          {activeTab === "group_stage" && (
+            <div className="mt-3 py-2 px-3 bg-gray-50/80 rounded-xl border border-gray-150 flex flex-wrap gap-1.5 sm:gap-2 animate-in slide-in-from-top-2 duration-200">
+              <GroupTab label="Tous les groupes" active={activeGroup === "all"} onClick={() => setActiveGroup("all")} />
+              {GROUPS.map((g) => (
+                <GroupTab
+                  key={g}
+                  label={`Groupe ${g}`}
+                  active={activeGroup === g}
+                  onClick={() => setActiveGroup(g)}
+                />
+              ))}
+            </div>
+          )}
+
+          {activeTab === "knockout_stage" && (
+            <div className="mt-3 py-2 px-3 bg-gray-50/80 rounded-xl border border-gray-150 flex flex-wrap gap-1.5 sm:gap-2 animate-in slide-in-from-top-2 duration-200">
+              <GroupTab label="Tous les matchs" active={activeKnockoutRound === "all"} onClick={() => setActiveKnockoutRound("all")} />
+              <GroupTab label="1/16 de finale" active={activeKnockoutRound === "round_of_32"} onClick={() => setActiveKnockoutRound("round_of_32")} />
+              <GroupTab label="1/8 de finale" active={activeKnockoutRound === "round_of_16"} onClick={() => setActiveKnockoutRound("round_of_16")} />
+              <GroupTab label="Quarts de finale" active={activeKnockoutRound === "quarter_finals"} onClick={() => setActiveKnockoutRound("quarter_finals")} />
+              <GroupTab label="Demi-finales" active={activeKnockoutRound === "semi_finals"} onClick={() => setActiveKnockoutRound("semi_finals")} />
+              <GroupTab label="Finale" active={activeKnockoutRound === "final"} onClick={() => setActiveKnockoutRound("final")} />
+            </div>
+          )}
         </div>
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
-        {activeGroup !== "all" && standings.length > 0 && (
+        {activeTab === "group_stage" && activeGroup !== "all" && standings.length > 0 && (
           <StandingsTable standings={standings} />
         )}
 
-        {activeGroup === "all" ? (
+        {(activeTab === "all" || (activeTab === "group_stage" && activeGroup === "all") || (activeTab === "knockout_stage" && activeKnockoutRound === "all")) ? (
           query.trim() ? (
             <Section
               title="Résultats de recherche"
@@ -1040,14 +1169,14 @@ function Index() {
               <Section
                 id="section-aujourd-hui"
                 title="Aujourd'hui"
-                subtitle="Phase de groupes · Aujourd'hui"
+                subtitle="Aujourd'hui"
                 matches={filtered.filter((m) => {
                   return m.status !== "live" && (m.rawDate === todayStr || (!m.rawDate && m.day === "today"));
                 })}
               />
               <Section
                 title="Demain"
-                subtitle="Phase de groupes · Demain"
+                subtitle="Demain"
                 matches={filtered.filter((m) => {
                   return m.rawDate === tomorrowStr || (!m.rawDate && m.day === "tomorrow");
                 })}
@@ -1063,10 +1192,16 @@ function Index() {
               )}
             </>
           )
-        ) : (
+        ) : activeTab === "group_stage" ? (
           <Section
             title="Calendrier & Résultats du Groupe"
             subtitle={`Tous les matchs du Groupe ${activeGroup}`}
+            matches={filtered}
+          />
+        ) : (
+          <Section
+            title={getKnockoutRoundTitle(activeKnockoutRound)}
+            subtitle="Phases éliminatoires de la Coupe du Monde"
             matches={filtered}
           />
         )}
@@ -1077,6 +1212,35 @@ function Index() {
           </div>
         )}
       </main>
+
+      {livePopup && (
+        <div className="fixed bottom-5 right-5 z-50 max-w-sm rounded-xl border border-red-200 bg-white p-4 shadow-xl animate-in slide-in-from-bottom-5 fade-in duration-300">
+          <div className="flex items-start gap-3">
+            <span className="relative flex h-2.5 w-2.5 mt-1 shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+            </span>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold text-[#d93025] uppercase tracking-wider mb-0.5">Match en Direct !</p>
+              <p className="text-sm font-medium text-gray-800">
+                {livePopup.teamA} vs {livePopup.teamB} est en direct !
+              </p>
+              <button
+                onClick={() => handlePopupClick(livePopup.id)}
+                className="mt-2 text-xs font-semibold text-[#1a73e8] hover:underline"
+              >
+                Voir le match en direct
+              </button>
+            </div>
+            <button
+              onClick={() => setLivePopup(null)}
+              className="text-[#80868b] hover:text-gray-800 transition font-bold text-lg leading-none -mt-1"
+            >
+              &times;
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1118,8 +1282,12 @@ function MatchCard({ match }: { match: Match }) {
   const [expanded, setExpanded] = useState(false);
   const finished = match.status === "finished";
   const isLive = match.status === "live";
-  const aWins = finished && (match.teamA.score ?? 0) > (match.teamB.score ?? 0);
-  const bWins = finished && (match.teamB.score ?? 0) > (match.teamA.score ?? 0);
+  const scoreA = match.teamA.score ?? 0;
+  const scoreB = match.teamB.score ?? 0;
+  const penA = match.teamA.penaltiesScore ?? 0;
+  const penB = match.teamB.penaltiesScore ?? 0;
+  const aWins = finished && (scoreA > scoreB || (scoreA === scoreB && match.teamA.isPenalties && penA > penB));
+  const bWins = finished && (scoreB > scoreA || (scoreA === scoreB && match.teamA.isPenalties && penB > penA));
 
   return (
     <article
@@ -1129,9 +1297,9 @@ function MatchCard({ match }: { match: Match }) {
       <div className="flex items-stretch gap-3">
         <div className="flex-1 min-w-0">
           <div className="mb-2 text-xs text-[#5f6368]">{match.group}</div>
-          <TeamRow team={match.teamA} won={aWins} showScore={finished || isLive} />
+          <TeamRow team={match.teamA} won={aWins} showScore={finished || (isLive && match.teamA.liveTracking === true)} isPenalties={match.teamA.isPenalties} />
           <div className="my-1 h-px bg-[#f1f3f4]" />
-          <TeamRow team={match.teamB} won={bWins} showScore={finished || isLive} />
+          <TeamRow team={match.teamB} won={bWins} showScore={finished || (isLive && match.teamA.liveTracking === true)} isPenalties={match.teamA.isPenalties} />
           <div className="mt-2 flex items-center justify-between text-xs text-[#5f6368]">
             {isLive ? (
               <div className="flex items-center gap-2">
@@ -1142,7 +1310,7 @@ function MatchCard({ match }: { match: Match }) {
               </div>
             ) : finished ? (
               <span className="font-medium text-[#202124]">
-                Terminé · FT{match.date ? ` · ${match.date}` : ""}{match.time ? ` · ${match.time.replace(':', 'h')}` : ""}
+                Terminé · {match.teamA.isPenalties ? "t.a.b." : match.teamA.isExtraTime ? "A.P." : "FT"}{match.date ? ` · ${match.date}` : ""}{match.time ? ` · ${match.time.replace(':', 'h')}` : ""}
               </span>
             ) : (
               <span className="font-medium text-[#1a73e8]">
@@ -1215,7 +1383,7 @@ function renderEvents(team: Team, rightAlign = false) {
   );
 }
 
-function TeamRow({ team, won, showScore }: { team: Team; won: boolean; showScore: boolean }) {
+function TeamRow({ team, won, showScore, isPenalties }: { team: Team; won: boolean; showScore: boolean; isPenalties?: boolean }) {
   return (
     <div className="flex items-center gap-3 py-1">
       <img
@@ -1242,6 +1410,11 @@ function TeamRow({ team, won, showScore }: { team: Team; won: boolean; showScore
           <span className={`w-5 text-right text-sm tabular-nums ${won ? "font-semibold text-[#202124]" : "text-[#5f6368]"}`}>
             {team.score}
           </span>
+          {isPenalties && team.penaltiesScore !== undefined && (
+            <span className="text-[11px] text-[#5f6368] bg-[#f1f3f4] px-1 rounded ml-1 font-normal" title="Tirs au but">
+              ({team.penaltiesScore})
+            </span>
+          )}
         </div>
       )}
     </div>

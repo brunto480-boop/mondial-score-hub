@@ -234,6 +234,15 @@
             </select>
           </div>
 
+          <!-- Live Tracking Toggle -->
+          <div class="border-t border-gray-200 pt-3">
+            <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5" for="live-tracking">Activer le suivi en direct</label>
+            <select id="live-tracking" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-[#202124] focus:outline-none focus:border-blue-500">
+              <option value="false" selected>Non (Match en cours, nous n'avons pas de suivi en direct)</option>
+              <option value="true">Oui (Chronomètre, cartons et détails en direct)</option>
+            </select>
+          </div>
+
           <!-- Scores (Hidden if scheduled) -->
           <div id="score-inputs-container" class="hidden border-t border-gray-200 pt-3 grid grid-cols-2 gap-2">
             <div>
@@ -243,6 +252,32 @@
             <div>
               <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5" for="scoreB">Score Équipe B</label>
               <input id="scoreB" type="number" min="0" value="0" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-[#202124] focus:outline-none focus:border-blue-500">
+            </div>
+          </div>
+
+          <!-- Knockout Stage Details -->
+          <div id="knockout-details-container" class="border-t border-gray-200 pt-3 space-y-3">
+            <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Phases Finales</label>
+            <div class="flex items-center gap-4">
+              <label class="flex items-center text-xs font-medium text-[#202124] cursor-pointer">
+                <input type="checkbox" id="match-is-extra-time" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2">
+                Prolongation (A.P.)
+              </label>
+              <label class="flex items-center text-xs font-medium text-[#202124] cursor-pointer">
+                <input type="checkbox" id="match-is-penalties" onchange="togglePenaltiesInput()" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2">
+                Tirs au but (t.a.b.)
+              </label>
+            </div>
+            
+            <div id="penalties-scores-container" class="hidden grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] text-[#5f6368] mb-1" for="penaltiesScoreA">Score TAB Équipe A</label>
+                <input id="penaltiesScoreA" type="number" min="0" value="0" class="w-full bg-white border border-gray-300 rounded-lg px-2 py-1 text-xs text-[#202124] focus:outline-none focus:border-blue-500">
+              </div>
+              <div>
+                <label class="block text-[10px] text-[#5f6368] mb-1" for="penaltiesScoreB">Score TAB Équipe B</label>
+                <input id="penaltiesScoreB" type="number" min="0" value="0" class="w-full bg-white border border-gray-300 rounded-lg px-2 py-1 text-xs text-[#202124] focus:outline-none focus:border-blue-500">
+              </div>
             </div>
           </div>
 
@@ -865,6 +900,16 @@
       }
     }
 
+    function togglePenaltiesInput() {
+      const isPenaltiesChecked = document.getElementById("match-is-penalties").checked;
+      const container = document.getElementById("penalties-scores-container");
+      if (isPenaltiesChecked) {
+        container.classList.remove("hidden");
+      } else {
+        container.classList.add("hidden");
+      }
+    }
+
     // Handle form submit to add or edit a match
     function handleAddMatch(event) {
       event.preventDefault();
@@ -886,6 +931,12 @@
       const scoreAVal = isFinished ? (parseInt(document.getElementById("scoreA").value) || 0) : undefined;
       const scoreBVal = isFinished ? (parseInt(document.getElementById("scoreB").value) || 0) : undefined;
       const formattedDate = dateVal ? formatFrenchDate(dateVal) : "";
+      const liveTrackingVal = document.getElementById("live-tracking").value === "true";
+
+      const isExtraTimeVal = document.getElementById("match-is-extra-time").checked;
+      const isPenaltiesVal = document.getElementById("match-is-penalties").checked;
+      const penaltiesScoreAVal = isPenaltiesVal ? (parseInt(document.getElementById("penaltiesScoreA").value) || 0) : undefined;
+      const penaltiesScoreBVal = isPenaltiesVal ? (parseInt(document.getElementById("penaltiesScoreB").value) || 0) : undefined;
       
       if (editingMatchId) {
         const idx = matches.findIndex(m => m.id === editingMatchId);
@@ -902,6 +953,17 @@
           match.teamA.flag = teamAFlag;
           match.teamA.venueCity = venueCityVal;
           match.teamA.venueCountry = venueCountryVal;
+          match.teamA.liveTracking = liveTrackingVal;
+          match.teamA.isExtraTime = isExtraTimeVal;
+          match.teamA.isPenalties = isPenaltiesVal;
+          
+          if (isPenaltiesVal) {
+            match.teamA.penaltiesScore = penaltiesScoreAVal;
+            match.teamB.penaltiesScore = penaltiesScoreBVal;
+          } else {
+            delete match.teamA.penaltiesScore;
+            delete match.teamB.penaltiesScore;
+          }
           
           if (isFinished) {
             match.teamA.score = scoreAVal;
@@ -942,6 +1004,10 @@
           goals: [], yellows: [], reds: [],
           venueCity: venueCityVal,
           venueCountry: venueCountryVal,
+          liveTracking: liveTrackingVal,
+          isExtraTime: isExtraTimeVal,
+          isPenalties: isPenaltiesVal,
+          ...(isPenaltiesVal ? { penaltiesScore: penaltiesScoreAVal } : {}),
           ...(isFinished ? { score: scoreAVal } : {}),
           ...(statusVal === "live" ? { halfState: "1st" } : {})
         };
@@ -950,6 +1016,7 @@
           name: teamBName,
           flag: teamBFlag,
           goals: [], yellows: [], reds: [],
+          ...(isPenaltiesVal ? { penaltiesScore: penaltiesScoreBVal } : {}),
           ...(isFinished ? { score: scoreBVal } : {})
         };
         
@@ -1036,12 +1103,17 @@
       // Set venue
       document.getElementById("match-venue-city").value = match.teamA.venueCity || "";
       document.getElementById("match-venue-country").value = match.teamA.venueCountry || "États-Unis";
+      document.getElementById("live-tracking").value = match.teamA.liveTracking ? "true" : "false";
       
       toggleScoreInputs();
-      if (match.status === "finished") {
-        document.getElementById("scoreA").value = match.teamA.score !== undefined ? match.teamA.score : 0;
-        document.getElementById("scoreB").value = match.teamB.score !== undefined ? match.teamB.score : 0;
-      }
+      document.getElementById("scoreA").value = match.teamA.score !== undefined ? match.teamA.score : 0;
+      document.getElementById("scoreB").value = match.teamB.score !== undefined ? match.teamB.score : 0;
+
+      document.getElementById("match-is-extra-time").checked = !!match.teamA.isExtraTime;
+      document.getElementById("match-is-penalties").checked = !!match.teamA.isPenalties;
+      togglePenaltiesInput();
+      document.getElementById("penaltiesScoreA").value = match.teamA.penaltiesScore !== undefined ? match.teamA.penaltiesScore : 0;
+      document.getElementById("penaltiesScoreB").value = match.teamB.penaltiesScore !== undefined ? match.teamB.penaltiesScore : 0;
  
       // Scroll to form
       document.getElementById("add-match-form").scrollIntoView({ behavior: 'smooth' });
@@ -1087,6 +1159,9 @@
       }
       
       document.getElementById("add-match-form").reset();
+      document.getElementById("match-is-extra-time").checked = false;
+      document.getElementById("match-is-penalties").checked = false;
+      togglePenaltiesInput();
       
       // Reset flag previews and disabled states
       ["A", "B"].forEach(type => {
@@ -1376,6 +1451,8 @@
         
         const scoreA = m.teamA.score !== undefined ? m.teamA.score : "-";
         const scoreB = m.teamB.score !== undefined ? m.teamB.score : "-";
+        const scoreDisplayA = m.teamA.isPenalties && m.teamA.penaltiesScore !== undefined ? `${scoreA} (${m.teamA.penaltiesScore})` : scoreA;
+        const scoreDisplayB = m.teamA.isPenalties && m.teamB.penaltiesScore !== undefined ? `${scoreB} (${m.teamB.penaltiesScore})` : scoreB;
         
         const goalsA = m.teamA.goals ? m.teamA.goals.join(', ') : '';
         const yellowsA = m.teamA.yellows ? m.teamA.yellows.join(', ') : '';
@@ -1414,7 +1491,7 @@
                   
                   <div class="flex items-center gap-1.5">
                     <button onclick="changeScore('${m.id}', 'A', -1)" class="w-6 h-6 rounded bg-gray-150 hover:bg-gray-200 text-gray-600 font-bold flex items-center justify-center text-xs transition">-</button>
-                    <span class="w-8 text-center text-base font-bold text-gray-800 tabular-nums">${scoreA}</span>
+                    <span class="w-16 text-center text-sm font-bold text-gray-800 tabular-nums">${scoreDisplayA}</span>
                     <button onclick="changeScore('${m.id}', 'A', 1)" class="w-6 h-6 rounded bg-gray-150 hover:bg-gray-250 text-gray-600 font-bold flex items-center justify-center text-xs transition">+</button>
                   </div>
                 </div>
@@ -1448,8 +1525,8 @@
                   
                   <div class="flex items-center gap-1.5">
                     <button onclick="changeScore('${m.id}', 'B', -1)" class="w-6 h-6 rounded bg-gray-150 hover:bg-gray-200 text-gray-600 font-bold flex items-center justify-center text-xs transition">-</button>
-                    <span class="w-8 text-center text-base font-bold text-gray-800 tabular-nums">${scoreB}</span>
-                    <button onclick="changeScore('${m.id}', 'B', 1)" class="w-6 h-6 rounded bg-gray-150 hover:bg-gray-200 text-gray-600 font-bold flex items-center justify-center text-xs transition">+</button>
+                    <span class="w-16 text-center text-sm font-bold text-gray-800 tabular-nums">${scoreDisplayB}</span>
+                    <button onclick="changeScore('${m.id}', 'B', 1)" class="w-6 h-6 rounded bg-gray-150 hover:bg-gray-250 text-gray-600 font-bold flex items-center justify-center text-xs transition">+</button>
                   </div>
                 </div>
 
@@ -1476,6 +1553,24 @@
                   <button onclick="toggleCoolingBreak('${m.id}')" class="text-xs flex items-center gap-1 px-2.5 py-1 rounded-md border ${m.teamA.coolingBreak ? 'bg-blue-600 border-blue-600 text-white font-medium' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'} transition">
                     <i data-lucide="droplet" class="w-3 h-3"></i>
                     <span>${m.teamA.coolingBreak ? 'Pause fraîcheur active' : 'Pause fraîcheur'}</span>
+                  </button>
+
+                  <!-- Live tracking toggle -->
+                  <button onclick="toggleLiveTracking('${m.id}')" class="text-xs flex items-center gap-1 px-2.5 py-1 rounded-md border ${m.teamA.liveTracking ? 'bg-emerald-600 border-emerald-600 text-white font-medium' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'} transition" title="Activer/Désactiver le suivi du temps et des cartons en direct pour les utilisateurs">
+                    <i data-lucide="radio" class="w-3 h-3 ${m.teamA.liveTracking ? 'animate-pulse' : ''}"></i>
+                    <span>${m.teamA.liveTracking ? 'Suivi Direct : OUI' : 'Suivi Direct : NON'}</span>
+                  </button>
+
+                  <!-- Extra time toggle -->
+                  <button onclick="toggleCardExtraTime('${m.id}')" class="text-xs flex items-center gap-1 px-2.5 py-1 rounded-md border ${m.teamA.isExtraTime ? 'bg-indigo-600 border-indigo-600 text-white font-medium' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'} transition" title="Activer/Désactiver la prolongation">
+                    <i data-lucide="clock" class="w-3 h-3"></i>
+                    <span>${m.teamA.isExtraTime ? 'Prol. : OUI' : 'Prol. : NON'}</span>
+                  </button>
+
+                  <!-- Penalties toggle -->
+                  <button onclick="toggleCardPenalties('${m.id}')" class="text-xs flex items-center gap-1 px-2.5 py-1 rounded-md border ${m.teamA.isPenalties ? 'bg-rose-600 border-rose-600 text-white font-medium' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'} transition" title="Activer/Désactiver la séance de tirs au but">
+                    <i data-lucide="circle-dot" class="w-3 h-3"></i>
+                    <span>${m.teamA.isPenalties ? 'TAB : OUI' : 'TAB : NON'}</span>
                   </button>
 
                   <!-- Adjust time button -->
@@ -2295,20 +2390,68 @@
       }
     }
 
+    function toggleLiveTracking(matchId) {
+      const idx = matches.findIndex(m => m.id === matchId);
+      if (idx !== -1) {
+        const match = matches[idx];
+        match.teamA.liveTracking = !match.teamA.liveTracking;
+        saveMatches();
+        saveMatchToSupabase(match);
+        filterAndRenderMatches();
+        showToast(match.teamA.liveTracking ? "🟢 Suivi en direct activé pour ce match" : "🔴 Suivi en direct désactivé (Match en cours sans suivi)");
+      }
+    }
+
+    function toggleCardExtraTime(matchId) {
+      const idx = matches.findIndex(m => m.id === matchId);
+      if (idx !== -1) {
+        const match = matches[idx];
+        match.teamA.isExtraTime = !match.teamA.isExtraTime;
+        saveMatches();
+        saveMatchToSupabase(match);
+        filterAndRenderMatches();
+        showToast(match.teamA.isExtraTime ? "➕ Prolongation activée" : "➖ Prolongation désactivée");
+      }
+    }
+
+    function toggleCardPenalties(matchId) {
+      const idx = matches.findIndex(m => m.id === matchId);
+      if (idx !== -1) {
+        const match = matches[idx];
+        match.teamA.isPenalties = !match.teamA.isPenalties;
+        if (match.teamA.isPenalties) {
+          if (match.teamA.penaltiesScore === undefined) match.teamA.penaltiesScore = 0;
+          if (match.teamB.penaltiesScore === undefined) match.teamB.penaltiesScore = 0;
+        }
+        saveMatches();
+        saveMatchToSupabase(match);
+        filterAndRenderMatches();
+        showToast(match.teamA.isPenalties ? "⚽ Séance de Tirs au but activée" : "🚫 Séance de Tirs au but désactivée");
+      }
+    }
+
     function getLiveStatusText(m) {
+      if (m.teamA.isPenalties) {
+        return "Tirs au but";
+      }
       const halfState = m.teamA.halfState || "1st";
       const coolingBreakActive = m.teamA.coolingBreak;
+
+      let suffix = "";
+      if (m.teamA.isExtraTime) {
+        suffix = " (A.P.)";
+      }
 
       if (halfState === "1st" && !m.teamA.firstHalfStart) {
         return "En attente du coup d'envoi";
       }
       if (coolingBreakActive) {
-        return `Pause fraîcheur · ${getMatchMinute(m)}`;
+        return `Pause fraîcheur · ${getMatchMinute(m)}${suffix}`;
       }
       if (halfState === "halftime") {
-        return "Mi-temps · 45'";
+        return `Mi-temps · 45'${suffix}`;
       }
-      return `En cours · ${getMatchMinute(m)}`;
+      return `En cours · ${getMatchMinute(m)}${suffix}`;
     }
 
     function parseMinuteString(val, halfState) {
@@ -2523,7 +2666,10 @@
               firstHalfStart: item.teamA.firstHalfStart || null,
               secondHalfStart: item.teamA.secondHalfStart || null,
               coolingBreak: item.teamA.coolingBreak || false,
-              coolingBreakStart: item.teamA.coolingBreakStart || null
+              coolingBreakStart: item.teamA.coolingBreakStart || null,
+              isExtraTime: item.teamA.isExtraTime || false,
+              isPenalties: item.teamA.isPenalties || false,
+              penaltiesScore: item.teamA.penaltiesScore !== undefined ? parseInt(item.teamA.penaltiesScore, 10) : undefined
             },
             teamB: {
               name: item.teamB.name,
@@ -2533,7 +2679,8 @@
               yellows: item.teamB.yellows || [],
               reds: item.teamB.reds || [],
               yellowCard: item.teamB.yellowCard || (item.teamB.yellows && item.teamB.yellows.length > 0) || false,
-              redCard: item.teamB.redCard || (item.teamB.reds && item.teamB.reds.length > 0) || false
+              redCard: item.teamB.redCard || (item.teamB.reds && item.teamB.reds.length > 0) || false,
+              penaltiesScore: item.teamB.penaltiesScore !== undefined ? parseInt(item.teamB.penaltiesScore, 10) : undefined
             }
           };
           
@@ -2567,6 +2714,10 @@
     window.importMatchJson = importMatchJson;
     window.renderHalfStateButton = renderHalfStateButton;
     window.toggleCoolingBreak = toggleCoolingBreak;
+    window.toggleLiveTracking = toggleLiveTracking;
+    window.togglePenaltiesInput = togglePenaltiesInput;
+    window.toggleCardExtraTime = toggleCardExtraTime;
+    window.toggleCardPenalties = toggleCardPenalties;
     window.editLiveTime = editLiveTime;
     window.closeTimeAdjustModal = closeTimeAdjustModal;
     window.saveTimeAdjustment = saveTimeAdjustment;
