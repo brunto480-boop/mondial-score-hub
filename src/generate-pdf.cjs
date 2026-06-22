@@ -169,10 +169,15 @@ function generateDocumentationPDF() {
   const pageCount = doc.bufferedPageRange().count;
   for (let i = 0; i < pageCount; i++) {
     doc.switchToPage(i);
+    const oldBottom = doc.page.margins.bottom;
+    doc.page.margins.bottom = 10;
+    
     doc.fillColor('#94a3b8')
        .font('Helvetica')
        .fontSize(8)
-       .text(`Page ${i + 1} sur ${pageCount}`, 50, doc.page.height - 40, { align: 'right', width: 495 });
+       .text(`Page ${i + 1} sur ${pageCount}`, 50, doc.page.height - 35, { align: 'right', width: 495 });
+       
+    doc.page.margins.bottom = oldBottom;
   }
 
   doc.end();
