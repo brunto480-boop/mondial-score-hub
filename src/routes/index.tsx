@@ -1492,12 +1492,13 @@ function Section({ id, title, subtitle, matches }: { id?: string; title: string;
         <h2 className="text-base font-medium text-[#202124]">{title}</h2>
         <span className="text-xs text-[#5f6368]">{subtitle}</span>
       </div>
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 items-start">
         {matches.map((m) => (
           <MatchCard key={m.id} match={m} />
         ))}
       </div>
     </section>
+
   );
 }
 
