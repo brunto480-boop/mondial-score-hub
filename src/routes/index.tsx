@@ -1568,6 +1568,22 @@ function MatchCard({ match }: { match: Match }) {
   );
 }
 
+function formatEventString(eventStr: string): string {
+  if (!eventStr) return "";
+  let str = eventStr.trim().replace(/\s+/g, ' ');
+  if (/\d+$/.test(str)) {
+    return str + "'";
+  }
+  const parenMatch = str.match(/^(.*?\b\d+)(['′]*)(\s*\([^)]+\))$/);
+  if (parenMatch) {
+    const [, before, quote, after] = parenMatch;
+    if (!quote) {
+      return before + "'" + after;
+    }
+  }
+  return str;
+}
+
 function renderEvents(team: Team, rightAlign = false) {
   const hasGoals = team.goals && team.goals.length > 0;
   const hasYellows = team.yellows && team.yellows.length > 0;
@@ -1582,7 +1598,7 @@ function renderEvents(team: Team, rightAlign = false) {
       {hasGoals && team.goals?.map((g, i) => (
         <div key={i} className="flex items-center gap-1.5 text-[#202124]">
           {!rightAlign && <span className="text-xs">⚽</span>}
-          <span className="truncate">{g}</span>
+          <span className="truncate">{formatEventString(g)}</span>
           {rightAlign && <span className="text-xs">⚽</span>}
         </div>
       ))}
@@ -1590,7 +1606,7 @@ function renderEvents(team: Team, rightAlign = false) {
       {hasYellows && team.yellows?.map((y, i) => (
         <div key={i} className="flex items-center gap-1.5 text-[#202124]">
           {!rightAlign && <span className="inline-block w-2 h-3 bg-[#fabb05] rounded-[1px]" title="Carton jaune" />}
-          <span className="truncate">{y}</span>
+          <span className="truncate">{formatEventString(y)}</span>
           {rightAlign && <span className="inline-block w-2 h-3 bg-[#fabb05] rounded-[1px]" title="Carton jaune" />}
         </div>
       ))}
@@ -1598,7 +1614,7 @@ function renderEvents(team: Team, rightAlign = false) {
       {hasReds && team.reds?.map((r, i) => (
         <div key={i} className="flex items-center gap-1.5 text-[#202124]">
           {!rightAlign && <span className="inline-block w-2 h-3 bg-[#ea4335] rounded-[1px]" title="Carton rouge" />}
-          <span className="truncate">{r}</span>
+          <span className="truncate">{formatEventString(r)}</span>
           {rightAlign && <span className="inline-block w-2 h-3 bg-[#ea4335] rounded-[1px]" title="Carton rouge" />}
         </div>
       ))}
