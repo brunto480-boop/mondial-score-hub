@@ -199,7 +199,7 @@
           <!-- Schedule Grid -->
           <div class="border-t border-gray-200 pt-3 grid grid-cols-3 gap-2">
             <div>
-              <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5 whitespace-nowrap" for="day">Jour</label>
+              <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5 whitespace-nowrap" for="day">Date relative</label>
               <select id="day" onchange="handleDayChange()" required class="w-full bg-white border border-gray-300 rounded-lg px-2 h-[38px] text-xs text-[#202124] focus:outline-none focus:border-blue-500">
                 <option value="past">Passé</option>
                 <option value="yesterday">Hier</option>
@@ -3171,29 +3171,79 @@
     function fillExampleJson() {
       const textarea = document.getElementById("json-import-input");
       if (!textarea) return;
-      const example = {
-        group: "Groupe A",
-        day: "today",
-        status: "finished",
-        date: "20:00",
-        venueCity: "Vancouver",
-        venueCountry: "Canada",
-        teamA: {
-          name: "Mexique",
-          flag: "mx",
-          score: 2,
-          goals: ["R. Jimenez 24'", "H. Lozano 78'"],
-          yellows: ["E. Alvarez 45'"]
+      const examples = [
+        {
+          group: "Groupe A",
+          day: "today",
+          status: "Programmé",
+          date: "20:00",
+          time: "20:00",
+          rawDate: "2026-06-22",
+          venueCity: "Vancouver",
+          venueCountry: "Canada",
+          teamA: {
+            name: "Mexique",
+            flag: "mx"
+          },
+          teamB: {
+            name: "Canada",
+            flag: "ca"
+          }
         },
-        teamB: {
-          name: "Corée du Sud",
-          flag: "kr",
-          score: 1,
-          goals: ["Heung-min Son 89'"],
-          reds: ["Min-jae Kim 90'"]
+        {
+          group: "Groupe B",
+          day: "yesterday",
+          status: "Terminé",
+          date: "18:00",
+          time: "18:00",
+          rawDate: "2026-06-21",
+          venueCity: "Toronto",
+          venueCountry: "Canada",
+          teamA: {
+            name: "France",
+            flag: "fr",
+            score: 3,
+            goals: ["K. Mbappé 12'", "A. Griezmann 45'", "O. Dembélé 88'"],
+            yellows: ["N. Kanté 60'"]
+          },
+          teamB: {
+            name: "Espagne",
+            flag: "es",
+            score: 2,
+            goals: ["L. Yamal 30'", "N. Williams 75'"],
+            reds: ["R. Le Normand 90'"]
+          }
+        },
+        {
+          group: "Seizièmes de finale",
+          day: "past",
+          status: "Terminé",
+          date: "15:00",
+          time: "15:00",
+          rawDate: "2026-06-18",
+          venueCity: "Los Angeles",
+          venueCountry: "États-Unis",
+          teamA: {
+            name: "Argentine",
+            flag: "ar",
+            score: 1,
+            goals: ["L. Messi 45+2'"],
+            isExtraTime: true,
+            penaltiesScore: 4,
+            penaltiesSequence: "ooxo"
+          },
+          teamB: {
+            name: "Brésil",
+            flag: "br",
+            score: 1,
+            goals: ["Vinicius Jr. 80'"],
+            isExtraTime: true,
+            penaltiesScore: 2,
+            penaltiesSequence: "oxox"
+          }
         }
-      };
-      textarea.value = JSON.stringify(example, null, 2);
+      ];
+      textarea.value = JSON.stringify(examples, null, 2);
     }
 
     async function importMatchJson() {
@@ -3219,11 +3269,43 @@
             continue;
           }
           
+          let statusVal = item.status || "scheduled";
+          if (typeof statusVal === "string") {
+            const statusLower = statusVal.toLowerCase();
+            if (statusLower.includes("program") || statusLower.includes("sched")) {
+              statusVal = "scheduled";
+            } else if (statusLower.includes("termin") || statusLower.includes("finish")) {
+              statusVal = "finished";
+            } else if (statusLower.includes("cours") || statusLower.includes("live")) {
+              statusVal = "live";
+            }
+          }
+          
+          let pScoreA = item.teamA.penaltiesScore !== undefined ? parseInt(item.teamA.penaltiesScore, 10) : undefined;
+          let pScoreB = item.teamB.penaltiesScore !== undefined ? parseInt(item.teamB.penaltiesScore, 10) : undefined;
+          let isPenalties = item.teamA.isPenalties || (pScoreA !== undefined || pScoreB !== undefined) || false;
+          
+          let seqA = item.teamA.penaltiesSequence;
+          let seqB = item.teamB.penaltiesSequence;
+          if (isPenalties && (!seqA || !seqB)) {
+            const valA = pScoreA || 0;
+            const valB = pScoreB || 0;
+            const maxShots = Math.max(5, valA + 1, valB + 1);
+            let shotsA = [];
+            let shotsB = [];
+            for (let i = 0; i < maxShots; i++) {
+              shotsA.push(i < valA ? "o" : ".");
+              shotsB.push(i < valB ? "o" : ".");
+            }
+            seqA = shotsA.join("");
+            seqB = shotsB.join("");
+          }
+          
           const match = {
             id: item.id || 'm_' + Math.random().toString(36).substr(2, 9),
             group: item.group || "Groupe A",
             day: item.day || "today",
-            status: item.status || "scheduled",
+            status: statusVal,
             date: item.date || "20:00",
             time: item.time || "20:00",
             rawDate: item.rawDate || new Date().toISOString().split('T')[0],
@@ -3245,9 +3327,10 @@
               secondHalfETStart: item.teamA.secondHalfETStart || null,
               coolingBreak: item.teamA.coolingBreak || false,
               coolingBreakStart: item.teamA.coolingBreakStart || null,
-              isExtraTime: item.teamA.isExtraTime || false,
-              isPenalties: item.teamA.isPenalties || false,
-              penaltiesScore: item.teamA.penaltiesScore !== undefined ? parseInt(item.teamA.penaltiesScore, 10) : undefined
+              isExtraTime: item.teamA.isExtraTime || item.isExtraTime || false,
+              isPenalties: isPenalties,
+              penaltiesScore: pScoreA,
+              penaltiesSequence: seqA
             },
             teamB: {
               name: item.teamB.name,
@@ -3258,7 +3341,12 @@
               reds: item.teamB.reds || [],
               yellowCard: item.teamB.yellowCard || (item.teamB.yellows && item.teamB.yellows.length > 0) || false,
               redCard: item.teamB.redCard || (item.teamB.reds && item.teamB.reds.length > 0) || false,
-              penaltiesScore: item.teamB.penaltiesScore !== undefined ? parseInt(item.teamB.penaltiesScore, 10) : undefined
+              venueCity: item.teamB.venueCity || item.venueCity || "",
+              venueCountry: item.teamB.venueCountry || item.venueCountry || "",
+              isExtraTime: item.teamA.isExtraTime || item.isExtraTime || false,
+              isPenalties: isPenalties,
+              penaltiesScore: pScoreB,
+              penaltiesSequence: seqB
             }
           };
           
