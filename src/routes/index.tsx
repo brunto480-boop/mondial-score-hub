@@ -927,7 +927,7 @@ function Index() {
 
             const apiFinished = m.status === "finished";
             const fsFinished = fsMatch.status === "finished";
-            if (apiFinished && !fsFinished) return true;
+            if (apiFinished && fsMatch.status === "scheduled") return true;
 
             const apiHasScore = m.teamA.score !== undefined && m.teamB.score !== undefined;
             const fsHasScore = fsMatch.teamA.score !== undefined && fsMatch.teamB.score !== undefined;
