@@ -117,20 +117,30 @@
 
           <!-- Group Selection -->
           <div>
-            <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5" for="group">Groupe</label>
-            <select id="group" required class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-[#202124] focus:outline-none focus:border-blue-500">
-              <option value="A">Groupe A</option>
-              <option value="B">Groupe B</option>
-              <option value="C">Groupe C</option>
-              <option value="D">Groupe D</option>
-              <option value="E">Groupe E</option>
-              <option value="F">Groupe F</option>
-              <option value="G">Groupe G</option>
-              <option value="H">Groupe H</option>
-              <option value="I">Groupe I</option>
-              <option value="J">Groupe J</option>
-              <option value="K">Groupe K</option>
-              <option value="L">Groupe L</option>
+            <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5" for="group">Groupe / Phase</label>
+            <select id="group" onchange="handleGroupChange()" required class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-[#202124] focus:outline-none focus:border-blue-500">
+              <optgroup label="Phase de groupes">
+                <option value="Groupe A">Groupe A</option>
+                <option value="Groupe B">Groupe B</option>
+                <option value="Groupe C">Groupe C</option>
+                <option value="Groupe D">Groupe D</option>
+                <option value="Groupe E">Groupe E</option>
+                <option value="Groupe F">Groupe F</option>
+                <option value="Groupe G">Groupe G</option>
+                <option value="Groupe H">Groupe H</option>
+                <option value="Groupe I">Groupe I</option>
+                <option value="Groupe J">Groupe J</option>
+                <option value="Groupe K">Groupe K</option>
+                <option value="Groupe L">Groupe L</option>
+              </optgroup>
+              <optgroup label="Phase finale">
+                <option value="Seizièmes de finale">1/16 de finale</option>
+                <option value="Huitièmes de finale">1/8 de finale</option>
+                <option value="Quarts de finale">Quarts de finale</option>
+                <option value="Demi-finales">Demi-finales</option>
+                <option value="Match 3e place">Match 3e place</option>
+                <option value="Finale">Finale</option>
+              </optgroup>
             </select>
           </div>
 
@@ -256,7 +266,7 @@
           </div>
 
           <!-- Knockout Stage Details -->
-          <div id="knockout-details-container" class="border-t border-gray-200 pt-3 space-y-3">
+          <div id="knockout-details-container" class="hidden border-t border-gray-200 pt-3 space-y-3">
             <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Phases Finales</label>
             <div class="flex items-center gap-4">
               <label class="flex items-center text-xs font-medium text-[#202124] cursor-pointer">
@@ -501,6 +511,22 @@
         } else {
           dateInput.value = targetDate;
         }
+      }
+    }
+
+    function handleGroupChange() {
+      const groupSelect = document.getElementById("group");
+      const groupVal = groupSelect.value;
+      const knockoutContainer = document.getElementById("knockout-details-container");
+      
+      const isKnockout = !groupVal.startsWith("Groupe ");
+      if (isKnockout) {
+        knockoutContainer.classList.remove("hidden");
+      } else {
+        knockoutContainer.classList.add("hidden");
+        document.getElementById("match-is-extra-time").checked = false;
+        document.getElementById("match-is-penalties").checked = false;
+        togglePenaltiesInput();
       }
     }
 
@@ -942,7 +968,7 @@
         const idx = matches.findIndex(m => m.id === editingMatchId);
         if (idx !== -1) {
           const match = matches[idx];
-          match.group = `Groupe ${groupVal}`;
+          match.group = groupVal;
           match.day = dayVal;
           match.status = statusVal;
           match.date = formattedDate;
@@ -977,6 +1003,8 @@
             delete match.teamA.halfState;
             delete match.teamA.firstHalfStart;
             delete match.teamA.secondHalfStart;
+            delete match.teamA.firstHalfETStart;
+            delete match.teamA.secondHalfETStart;
             delete match.teamA.coolingBreak;
             delete match.teamA.coolingBreakStart;
           }
@@ -1022,7 +1050,7 @@
         
         const newMatch = {
           id: matchId,
-          group: `Groupe ${groupVal}`,
+          group: groupVal,
           day: dayVal,
           status: statusVal,
           date: formattedDate,
@@ -1059,8 +1087,8 @@
       }
  
       // Set group select
-      const grp = match.group.replace("Groupe ", "");
-      document.getElementById("group").value = grp;
+      document.getElementById("group").value = match.group;
+      handleGroupChange();
  
       // Set teams
       setTeamFormSelect("A", match.teamA.name, match.teamA.flag);
@@ -1195,21 +1223,62 @@
           }
         }
         
-        if (match.teamA.score === undefined) {
-          match.teamA.score = 0;
-        }
-        if (match.teamB.score === undefined) {
-          match.teamB.score = 0;
-        }
-        
         const teamKey = team === "A" ? "teamA" : "teamB";
-        match[teamKey].score = Math.max(0, match[teamKey].score + delta);
+        
+        if (match.teamA.isPenalties || match.teamA.halfState === "penalties") {
+          if (match.teamA.penaltiesScore === undefined) {
+            match.teamA.penaltiesScore = 0;
+          }
+          if (match.teamB.penaltiesScore === undefined) {
+            match.teamB.penaltiesScore = 0;
+          }
+          match[teamKey].penaltiesScore = Math.max(0, (match[teamKey].penaltiesScore || 0) + delta);
+        } else {
+          if (match.teamA.score === undefined) {
+            match.teamA.score = 0;
+          }
+          if (match.teamB.score === undefined) {
+            match.teamB.score = 0;
+          }
+          match[teamKey].score = Math.max(0, match[teamKey].score + delta);
+        }
         
         saveMatches();
         saveMatchToSupabase(match);
         filterAndRenderMatches();
         showToast("Score mis à jour");
       }
+    }
+
+    function cyclePenaltyShot(matchId, teamLetter, index) {
+      const idx = matches.findIndex(m => m.id === matchId);
+      if (idx === -1) return;
+      const match = matches[idx];
+      const team = teamLetter === "A" ? match.teamA : match.teamB;
+      
+      let seq = team.penaltiesSequence || ".....";
+      const chars = seq.split("");
+      
+      const current = chars[index] || ".";
+      let next = ".";
+      if (current === ".") next = "o";
+      else if (current === "o") next = "x";
+      
+      chars[index] = next;
+      
+      let newSeq = chars.join("");
+      if (!newSeq.includes(".") && newSeq.length >= 5) {
+        newSeq += ".";
+      }
+      
+      team.penaltiesSequence = newSeq;
+      
+      team.penaltiesScore = newSeq.split("").filter(c => c === "o").length;
+      
+      saveMatches();
+      saveMatchToSupabase(match);
+      filterAndRenderMatches();
+      showToast("Tir au but enregistré");
     }
 
 
@@ -1365,6 +1434,8 @@
           delete match.teamA.halfState;
           delete match.teamA.firstHalfStart;
           delete match.teamA.secondHalfStart;
+          delete match.teamA.firstHalfETStart;
+          delete match.teamA.secondHalfETStart;
           delete match.teamA.coolingBreak;
           delete match.teamA.coolingBreakStart;
         }
@@ -1504,6 +1575,26 @@
                     <input type="text" placeholder="🟥 Rouges" value="${redsA}" onchange="updateMatchEvents('${m.id}', 'A', 'reds', this.value)" class="col-span-1 w-full bg-gray-50 border border-gray-200 rounded px-1.5 py-0.5 text-[10px] text-gray-750 focus:bg-white focus:border-blue-500 focus:outline-none">
                   </div>
                 </div>
+
+                <!-- Team A Penalties sequence dots (if active) -->
+                ${m.teamA.isPenalties ? `
+                  <div class="mt-2 pl-7 flex items-center gap-1 animate-in fade-in duration-200">
+                    <span class="text-[9px] font-bold text-slate-400 mr-1 uppercase">TAB :</span>
+                    ${(m.teamA.penaltiesSequence || ".....").split("").map((shot, idx) => {
+                      let btnClass = "bg-gray-100 hover:bg-gray-200 text-gray-400 border border-gray-300";
+                      if (shot === "o") {
+                        btnClass = "bg-emerald-500 hover:bg-emerald-600 text-white border border-emerald-600 shadow-sm";
+                      } else if (shot === "x") {
+                        btnClass = "bg-red-500 hover:bg-red-600 text-white border border-red-600 shadow-sm";
+                      }
+                      return `
+                        <button onclick="cyclePenaltyShot('${m.id}', 'A', ${idx})" class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition ${btnClass}" title="Modifier ce tir">
+                          ${shot === "o" ? "✓" : shot === "x" ? "✗" : "•"}
+                        </button>
+                      `;
+                    }).join("")}
+                  </div>
+                ` : ''}
               </div>
 
               <!-- Divider -->
@@ -1526,7 +1617,7 @@
                   <div class="flex items-center gap-1.5">
                     <button onclick="changeScore('${m.id}', 'B', -1)" class="w-6 h-6 rounded bg-gray-150 hover:bg-gray-200 text-gray-600 font-bold flex items-center justify-center text-xs transition">-</button>
                     <span class="w-16 text-center text-sm font-bold text-gray-800 tabular-nums">${scoreDisplayB}</span>
-                    <button onclick="changeScore('${m.id}', 'B', 1)" class="w-6 h-6 rounded bg-gray-150 hover:bg-gray-250 text-gray-600 font-bold flex items-center justify-center text-xs transition">+</button>
+                    <button onclick="changeScore('${m.id}', 'B', 1)" class="w-6 h-6 rounded bg-gray-150 hover:bg-gray-200 text-gray-650 font-bold flex items-center justify-center text-xs transition">+</button>
                   </div>
                 </div>
 
@@ -1538,6 +1629,26 @@
                     <input type="text" placeholder="🟥 Rouges" value="${redsB}" onchange="updateMatchEvents('${m.id}', 'B', 'reds', this.value)" class="col-span-1 w-full bg-gray-50 border border-gray-200 rounded px-1.5 py-0.5 text-[10px] text-gray-750 focus:bg-white focus:border-blue-500 focus:outline-none">
                   </div>
                 </div>
+
+                <!-- Team B Penalties sequence dots (if active) -->
+                ${m.teamA.isPenalties ? `
+                  <div class="mt-2 pl-7 flex items-center gap-1 animate-in fade-in duration-200">
+                    <span class="text-[9px] font-bold text-slate-400 mr-1 uppercase">TAB :</span>
+                    ${(m.teamB.penaltiesSequence || ".....").split("").map((shot, idx) => {
+                      let btnClass = "bg-gray-100 hover:bg-gray-200 text-gray-400 border border-gray-300";
+                      if (shot === "o") {
+                        btnClass = "bg-emerald-500 hover:bg-emerald-600 text-white border border-emerald-600 shadow-sm";
+                      } else if (shot === "x") {
+                        btnClass = "bg-red-500 hover:bg-red-600 text-white border border-red-600 shadow-sm";
+                      }
+                      return `
+                        <button onclick="cyclePenaltyShot('${m.id}', 'B', ${idx})" class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition ${btnClass}" title="Modifier ce tir">
+                          ${shot === "o" ? "✓" : shot === "x" ? "✗" : "•"}
+                        </button>
+                      `;
+                    }).join("")}
+                  </div>
+                ` : ''}
               </div>
             </div>
 
@@ -1559,18 +1670,6 @@
                   <button onclick="toggleLiveTracking('${m.id}')" class="text-xs flex items-center gap-1 px-2.5 py-1 rounded-md border ${m.teamA.liveTracking ? 'bg-emerald-600 border-emerald-600 text-white font-medium' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'} transition" title="Activer/Désactiver le suivi du temps et des cartons en direct pour les utilisateurs">
                     <i data-lucide="radio" class="w-3 h-3 ${m.teamA.liveTracking ? 'animate-pulse' : ''}"></i>
                     <span>${m.teamA.liveTracking ? 'Suivi Direct : OUI' : 'Suivi Direct : NON'}</span>
-                  </button>
-
-                  <!-- Extra time toggle -->
-                  <button onclick="toggleCardExtraTime('${m.id}')" class="text-xs flex items-center gap-1 px-2.5 py-1 rounded-md border ${m.teamA.isExtraTime ? 'bg-indigo-600 border-indigo-600 text-white font-medium' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'} transition" title="Activer/Désactiver la prolongation">
-                    <i data-lucide="clock" class="w-3 h-3"></i>
-                    <span>${m.teamA.isExtraTime ? 'Prol. : OUI' : 'Prol. : NON'}</span>
-                  </button>
-
-                  <!-- Penalties toggle -->
-                  <button onclick="toggleCardPenalties('${m.id}')" class="text-xs flex items-center gap-1 px-2.5 py-1 rounded-md border ${m.teamA.isPenalties ? 'bg-rose-600 border-rose-600 text-white font-medium' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'} transition" title="Activer/Désactiver la séance de tirs au but">
-                    <i data-lucide="circle-dot" class="w-3 h-3"></i>
-                    <span>${m.teamA.isPenalties ? 'TAB : OUI' : 'TAB : NON'}</span>
                   </button>
 
                   <!-- Adjust time button -->
@@ -2039,6 +2138,12 @@
             if (existingMatch.teamA.secondHalfStart !== undefined) {
               newMatch.teamA.secondHalfStart = existingMatch.teamA.secondHalfStart;
             }
+            if (existingMatch.teamA.firstHalfETStart !== undefined) {
+              newMatch.teamA.firstHalfETStart = existingMatch.teamA.firstHalfETStart;
+            }
+            if (existingMatch.teamA.secondHalfETStart !== undefined) {
+              newMatch.teamA.secondHalfETStart = existingMatch.teamA.secondHalfETStart;
+            }
           }
 
           return newMatch;
@@ -2225,6 +2330,12 @@
             if (existingMatch.teamA.secondHalfStart !== undefined) {
               newMatch.teamA.secondHalfStart = existingMatch.teamA.secondHalfStart;
             }
+            if (existingMatch.teamA.firstHalfETStart !== undefined) {
+              newMatch.teamA.firstHalfETStart = existingMatch.teamA.firstHalfETStart;
+            }
+            if (existingMatch.teamA.secondHalfETStart !== undefined) {
+              newMatch.teamA.secondHalfETStart = existingMatch.teamA.secondHalfETStart;
+            }
           }
 
           return newMatch;
@@ -2290,6 +2401,36 @@
         } else {
           return `90'${diffMins - 45}`;
         }
+      } else if (halfState === "1stET") {
+        const start = m.teamA.firstHalfETStart ? new Date(m.teamA.firstHalfETStart) : null;
+        if (!start) {
+          return "90'";
+        }
+        const end = coolingBreakActive && coolingBreakStart ? new Date(coolingBreakStart) : new Date();
+        const diffMs = end - start;
+        const diffMins = Math.max(0, Math.floor(diffMs / (60 * 1000)));
+        if (diffMins <= 15) {
+          return `${90 + diffMins}'`;
+        } else {
+          return `105'${diffMins - 15}`;
+        }
+      } else if (halfState === "halftimeET") {
+        return "105'";
+      } else if (halfState === "2ndET") {
+        const start = m.teamA.secondHalfETStart ? new Date(m.teamA.secondHalfETStart) : null;
+        if (!start) {
+          return "105'";
+        }
+        const end = coolingBreakActive && coolingBreakStart ? new Date(coolingBreakStart) : new Date();
+        const diffMs = end - start;
+        const diffMins = Math.max(0, Math.floor(diffMs / (60 * 1000)));
+        if (diffMins <= 15) {
+          return `${105 + diffMins}'`;
+        } else {
+          return `120'${diffMins - 15}`;
+        }
+      } else if (halfState === "penalties") {
+        return "TB";
       }
       return "";
     }
@@ -2316,16 +2457,56 @@
         `;
       } else if (halfState === "halftime") {
         return `
-          <button onclick="setHalfState('${m.id}', '2nd')" class="text-xs flex items-center gap-1 px-2.5 py-1 rounded-md bg-indigo-55 bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 transition font-medium">
+          <button onclick="setHalfState('${m.id}', '2nd')" class="text-xs flex items-center gap-1 px-2.5 py-1 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 transition font-medium">
             <i data-lucide="skip-forward" class="w-3 h-3"></i>
             <span>Début 2e Mi-temps</span>
           </button>
         `;
       } else if (halfState === "2nd") {
         return `
-          <button onclick="setHalfState('${m.id}', 'finished')" class="text-xs flex items-center gap-1 px-2.5 py-1 rounded-md bg-red-600 border border-red-200 text-white hover:bg-red-750 transition font-medium">
+          <div class="flex flex-wrap gap-1.5">
+            <button onclick="setHalfState('${m.id}', 'finished')" class="text-xs flex items-center gap-1 px-2 py-0.5 rounded bg-red-600 border border-red-600 text-white hover:bg-red-700 transition font-medium">
+              <i data-lucide="stop-circle" class="w-3 h-3"></i>
+              <span>Fin Match</span>
+            </button>
+            <button onclick="setHalfState('${m.id}', '1stET')" class="text-xs flex items-center gap-1 px-2 py-0.5 rounded bg-purple-600 border border-purple-600 text-white hover:bg-purple-700 transition font-medium" title="Démarrer la prolongation">
+              <i data-lucide="play" class="w-3 h-3"></i>
+              <span>Prolongation</span>
+            </button>
+          </div>
+        `;
+      } else if (halfState === "1stET") {
+        return `
+          <button onclick="setHalfState('${m.id}', 'halftimeET')" class="text-xs flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition font-medium">
+            <i data-lucide="pause" class="w-3 h-3"></i>
+            <span>Fin 1ère MT Prol.</span>
+          </button>
+        `;
+      } else if (halfState === "halftimeET") {
+        return `
+          <button onclick="setHalfState('${m.id}', '2ndET')" class="text-xs flex items-center gap-1 px-2.5 py-1 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 transition font-medium">
+            <i data-lucide="skip-forward" class="w-3 h-3"></i>
+            <span>Début 2e MT Prol.</span>
+          </button>
+        `;
+      } else if (halfState === "2ndET") {
+        return `
+          <div class="flex flex-wrap gap-1.5">
+            <button onclick="setHalfState('${m.id}', 'finished')" class="text-xs flex items-center gap-1 px-2 py-0.5 rounded bg-red-600 border border-red-600 text-white hover:bg-red-700 transition font-medium">
+              <i data-lucide="stop-circle" class="w-3 h-3"></i>
+              <span>Fin Match</span>
+            </button>
+            <button onclick="setHalfState('${m.id}', 'penalties')" class="text-xs flex items-center gap-1 px-2 py-0.5 rounded bg-rose-600 border border-rose-600 text-white hover:bg-rose-700 transition font-medium" title="Démarrer la séance de tirs au but">
+              <i data-lucide="circle-dot" class="w-3 h-3"></i>
+              <span>Tirs au but</span>
+            </button>
+          </div>
+        `;
+      } else if (halfState === "penalties") {
+        return `
+          <button onclick="setHalfState('${m.id}', 'finished')" class="text-xs flex items-center gap-1 px-2.5 py-1 rounded-md bg-red-600 border border-red-650 text-white hover:bg-red-700 transition font-medium">
             <i data-lucide="stop-circle" class="w-3 h-3"></i>
-            <span>Fin du Match</span>
+            <span>Fin du Match (TAB)</span>
           </button>
         `;
       }
@@ -2378,6 +2559,10 @@
               match.teamA.firstHalfStart = new Date(new Date(match.teamA.firstHalfStart).getTime() + breakDurationMs).toISOString();
             } else if (halfState === "2nd" && match.teamA.secondHalfStart) {
               match.teamA.secondHalfStart = new Date(new Date(match.teamA.secondHalfStart).getTime() + breakDurationMs).toISOString();
+            } else if (halfState === "1stET" && match.teamA.firstHalfETStart) {
+              match.teamA.firstHalfETStart = new Date(new Date(match.teamA.firstHalfETStart).getTime() + breakDurationMs).toISOString();
+            } else if (halfState === "2ndET" && match.teamA.secondHalfETStart) {
+              match.teamA.secondHalfETStart = new Date(new Date(match.teamA.secondHalfETStart).getTime() + breakDurationMs).toISOString();
             }
             delete match.teamA.coolingBreakStart;
           }
@@ -2431,19 +2616,25 @@
     }
 
     function getLiveStatusText(m) {
-      if (m.teamA.isPenalties) {
+      if (m.teamA.isPenalties || m.teamA.halfState === "penalties") {
         return "Tirs au but";
       }
       const halfState = m.teamA.halfState || "1st";
       const coolingBreakActive = m.teamA.coolingBreak;
 
       let suffix = "";
-      if (m.teamA.isExtraTime) {
+      if (m.teamA.isExtraTime || ["1stET", "halftimeET", "2ndET"].includes(halfState)) {
         suffix = " (A.P.)";
       }
 
       if (halfState === "1st" && !m.teamA.firstHalfStart) {
         return "En attente du coup d'envoi";
+      }
+      if (halfState === "1stET" && !m.teamA.firstHalfETStart) {
+        return "Prolongation · En attente du coup d'envoi";
+      }
+      if (halfState === "2ndET" && !m.teamA.secondHalfETStart) {
+        return "Prolongation · En attente de la 2e MT";
       }
       if (coolingBreakActive) {
         return `Pause fraîcheur · ${getMatchMinute(m)}${suffix}`;
@@ -2451,10 +2642,68 @@
       if (halfState === "halftime") {
         return `Mi-temps · 45'${suffix}`;
       }
+      if (halfState === "halftimeET") {
+        return `Mi-temps Prolongation · 105'${suffix}`;
+      }
       return `En cours · ${getMatchMinute(m)}${suffix}`;
     }
 
+    function detectPhaseAndMinute(val) {
+      if (val.toUpperCase() === "TB") {
+        return { phase: "penalties", minute: 0 };
+      }
+      
+      const cleanVal = val.replace(/\s+/g, "");
+      let base = 0;
+      let extra = 0;
+      
+      if (cleanVal.includes("'")) {
+        const parts = cleanVal.split("'");
+        base = parseInt(parts[0], 10);
+        extra = parseInt(parts[1], 10) || 0;
+      } else if (cleanVal.includes("+")) {
+        const parts = cleanVal.split("+");
+        base = parseInt(parts[0], 10);
+        extra = parseInt(parts[1], 10) || 0;
+      } else {
+        base = parseInt(cleanVal, 10);
+      }
+      
+      if (isNaN(base)) {
+        return null;
+      }
+      
+      const total = base + extra;
+      
+      let phase = "1st";
+      
+      if (base === 45) {
+        phase = "1st";
+      } else if (base === 90) {
+        phase = "2nd";
+      } else if (base === 105) {
+        phase = "1stET";
+      } else if (base === 120) {
+        phase = "2ndET";
+      } else {
+        if (total <= 45) {
+          phase = "1st";
+        } else if (total > 45 && total <= 90) {
+          phase = "2nd";
+        } else if (total > 90 && total <= 105) {
+          phase = "1stET";
+        } else if (total > 105) {
+          phase = "2ndET";
+        }
+      }
+      
+      return { phase, minute: total };
+    }
+
     function parseMinuteString(val, halfState) {
+      if (val.toUpperCase() === "TB") {
+        return "TB";
+      }
       const cleanVal = val.replace(/\s+/g, "");
       
       let base = 0;
@@ -2480,6 +2729,10 @@
       
       if (halfState === "2nd" && total < 45) {
         total = 45 + total;
+      } else if (halfState === "1stET" && total < 90) {
+        total = 90 + total;
+      } else if (halfState === "2ndET" && total < 105) {
+        total = 105 + total;
       }
       
       return total;
@@ -2491,7 +2744,7 @@
       const match = matches[idx];
       
       const halfState = match.teamA.halfState || "1st";
-      if (halfState === "halftime") {
+      if (halfState === "halftime" || halfState === "halftimeET") {
         showToast("Impossible d'ajuster le temps pendant la mi-temps", true);
         return;
       }
@@ -2510,11 +2763,7 @@
       document.getElementById("time-adjust-input").value = currentMinuteClean;
       
       const descriptionEl = document.getElementById("time-adjust-description");
-      if (halfState === "1st") {
-        descriptionEl.innerText = `Saisissez la minute actuelle de la 1ère mi-temps (ex: 25, ou 45'2).`;
-      } else {
-        descriptionEl.innerText = `Saisissez la minute actuelle de la 2e mi-temps (ex: 65, 90'3, ou 25 pour la 25e minute de la 2e mi-temps).`;
-      }
+      descriptionEl.innerText = `Saisissez le temps actuel (ex: 25, 45'2, 90'4, 105'1, 120'3 ou TB). Le match s'adaptera intelligemment à la période correspondante.`;
       
       document.getElementById("time-adjust-modal").classList.remove("hidden");
     }
@@ -2531,34 +2780,52 @@
         return;
       }
       const match = matches[idx];
-      const halfState = match.teamA.halfState || "1st";
+      const inputVal = document.getElementById("time-adjust-input").value.trim();
       
-      const inputVal = document.getElementById("time-adjust-input").value;
-      const targetMinute = parseMinuteString(inputVal, halfState);
-      
-      if (isNaN(targetMinute) || targetMinute < 0) {
-        showToast("Veuillez saisir un format de temps valide (ex: 25, 45'2, 70 ou 90'3).", true);
+      const result = detectPhaseAndMinute(inputVal);
+      if (!result) {
+        showToast("Veuillez saisir un format de temps valide (ex: 25, 45'2, 90'4, 105'1, 120'3 ou TB).", true);
         return;
       }
       
+      const { phase, minute } = result;
       const now = new Date();
       const coolingBreakActive = match.teamA.coolingBreak;
       const coolingBreakStart = match.teamA.coolingBreakStart;
       const referenceTime = (coolingBreakActive && coolingBreakStart) ? new Date(coolingBreakStart) : now;
       
-      if (halfState === "1st") {
-        const start = new Date(referenceTime.getTime() - targetMinute * 60000);
+      match.teamA.halfState = phase;
+      
+      if (phase === "1st") {
+        const start = new Date(referenceTime.getTime() - minute * 60000);
         match.teamA.firstHalfStart = start.toISOString();
-      } else if (halfState === "2nd") {
-        const start = new Date(referenceTime.getTime() - (targetMinute - 45) * 60000);
+      } else if (phase === "2nd") {
+        const start = new Date(referenceTime.getTime() - (minute - 45) * 60000);
         match.teamA.secondHalfStart = start.toISOString();
+      } else if (phase === "1stET") {
+        match.teamA.isExtraTime = true;
+        const start = new Date(referenceTime.getTime() - (minute - 90) * 60000);
+        match.teamA.firstHalfETStart = start.toISOString();
+      } else if (phase === "2ndET") {
+        match.teamA.isExtraTime = true;
+        const start = new Date(referenceTime.getTime() - (minute - 105) * 60000);
+        match.teamA.secondHalfETStart = start.toISOString();
+      } else if (phase === "penalties") {
+        match.teamA.isPenalties = true;
+        if (match.teamA.penaltiesScore === undefined) match.teamA.penaltiesScore = 0;
+        if (match.teamB.penaltiesScore === undefined) match.teamB.penaltiesScore = 0;
       }
       
       saveMatches();
       saveMatchToSupabase(match);
       filterAndRenderMatches();
       closeTimeAdjustModal();
-      showToast(`Temps ajusté à la ${targetMinute}e minute !`);
+      
+      if (phase === "penalties") {
+        showToast(`Séance de Tirs au but activée !`);
+      } else {
+        showToast(`Temps ajusté à la ${minute}e minute (${phase === "1st" ? "1ère MT" : phase === "2nd" ? "2e MT" : phase === "1stET" ? "1ère MT Prol." : "2e MT Prol."}) !`);
+      }
     }
 
     function setHalfState(matchId, state) {
@@ -2570,6 +2837,8 @@
           delete match.teamA.halfState;
           delete match.teamA.firstHalfStart;
           delete match.teamA.secondHalfStart;
+          delete match.teamA.firstHalfETStart;
+          delete match.teamA.secondHalfETStart;
           delete match.teamA.coolingBreak;
           delete match.teamA.coolingBreakStart;
         } else {
@@ -2583,6 +2852,15 @@
           }
           if (state === "2nd") {
             match.teamA.secondHalfStart = new Date().toISOString(); // Start second half immediately!
+          } else if (state === "1stET") {
+            match.teamA.isExtraTime = true;
+            match.teamA.firstHalfETStart = new Date().toISOString(); // Start 1st ET!
+          } else if (state === "2ndET") {
+            match.teamA.secondHalfETStart = new Date().toISOString(); // Start 2nd ET!
+          } else if (state === "penalties") {
+            match.teamA.isPenalties = true;
+            if (match.teamA.penaltiesScore === undefined) match.teamA.penaltiesScore = 0;
+            if (match.teamB.penaltiesScore === undefined) match.teamB.penaltiesScore = 0;
           }
         }
         saveMatches();
@@ -2665,6 +2943,8 @@
               halfState: item.teamA.halfState || null,
               firstHalfStart: item.teamA.firstHalfStart || null,
               secondHalfStart: item.teamA.secondHalfStart || null,
+              firstHalfETStart: item.teamA.firstHalfETStart || null,
+              secondHalfETStart: item.teamA.secondHalfETStart || null,
               coolingBreak: item.teamA.coolingBreak || false,
               coolingBreakStart: item.teamA.coolingBreakStart || null,
               isExtraTime: item.teamA.isExtraTime || false,
@@ -2727,11 +3007,13 @@
     window.updateFlagPreview = updateFlagPreview;
     window.handleDayChange = handleDayChange;
     window.handleDateChange = handleDateChange;
+    window.handleGroupChange = handleGroupChange;
     window.toggleScoreInputs = toggleScoreInputs;
     window.handleAddMatch = handleAddMatch;
     window.startEditMatch = startEditMatch;
     window.cancelEditMatch = cancelEditMatch;
     window.changeScore = changeScore;
+    window.cyclePenaltyShot = cyclePenaltyShot;
     window.toggleMatchStatus = toggleMatchStatus;
     window.updateMatchEvents = updateMatchEvents;
     window.toggleRedCard = toggleRedCard;

@@ -30,13 +30,16 @@ type Team = {
   venueCountry?: string;
   coolingBreak?: boolean;
   coolingBreakStart?: string;
-  halfState?: "1st" | "halftime" | "2nd";
+  halfState?: "1st" | "halftime" | "2nd" | "1stET" | "halftimeET" | "2ndET" | "penalties";
   firstHalfStart?: string;
   secondHalfStart?: string;
+  firstHalfETStart?: string;
+  secondHalfETStart?: string;
   liveTracking?: boolean;
   isExtraTime?: boolean;
   isPenalties?: boolean;
   penaltiesScore?: number;
+  penaltiesSequence?: string;
 };
 
 type Match = {
@@ -91,14 +94,41 @@ const getMatchMinute = (match: Match): string => {
     const end = coolingBreakActive && coolingBreakStart ? new Date(coolingBreakStart) : new Date();
     const diffMs = end.getTime() - start.getTime();
     const diffMins = Math.max(0, Math.floor(diffMs / (60 * 1000)));
-    if (match.teamA.isExtraTime) {
-      return `${45 + diffMins}'`;
-    }
     if (diffMins <= 45) {
       return `${45 + diffMins}'`;
     } else {
       return `90'${diffMins - 45}`;
     }
+  } else if (halfState === "1stET") {
+    const start = match.teamA.firstHalfETStart ? new Date(match.teamA.firstHalfETStart) : null;
+    if (!start) {
+      return "90'";
+    }
+    const end = coolingBreakActive && coolingBreakStart ? new Date(coolingBreakStart) : new Date();
+    const diffMs = end.getTime() - start.getTime();
+    const diffMins = Math.max(0, Math.floor(diffMs / (60 * 1000)));
+    if (diffMins <= 15) {
+      return `${90 + diffMins}'`;
+    } else {
+      return `105'${diffMins - 15}`;
+    }
+  } else if (halfState === "halftimeET") {
+    return "105'";
+  } else if (halfState === "2ndET") {
+    const start = match.teamA.secondHalfETStart ? new Date(match.teamA.secondHalfETStart) : null;
+    if (!start) {
+      return "105'";
+    }
+    const end = coolingBreakActive && coolingBreakStart ? new Date(coolingBreakStart) : new Date();
+    const diffMs = end.getTime() - start.getTime();
+    const diffMins = Math.max(0, Math.floor(diffMs / (60 * 1000)));
+    if (diffMins <= 15) {
+      return `${105 + diffMins}'`;
+    } else {
+      return `120'${diffMins - 15}`;
+    }
+  } else if (halfState === "penalties") {
+    return "TB";
   }
   return "";
 };
@@ -107,25 +137,34 @@ const getLiveStatusText = (match: Match): string => {
   if (match.teamA.liveTracking !== true) {
     return "Match en cours, nous n'avons pas de suivi en direct";
   }
-  if (match.teamA.isPenalties) {
+  if (match.teamA.isPenalties || match.teamA.halfState === "penalties") {
     return "Tirs au but";
   }
   const halfState = match.teamA.halfState || "1st";
   const coolingBreakActive = match.teamA.coolingBreak;
 
   let suffix = "";
-  if (match.teamA.isExtraTime) {
+  if (match.teamA.isExtraTime || ["1stET", "halftimeET", "2ndET"].includes(halfState)) {
     suffix = " (A.P.)";
   }
 
   if (halfState === "1st" && !match.teamA.firstHalfStart) {
     return "En attente du coup d'envoi";
   }
+  if (halfState === "1stET" && !match.teamA.firstHalfETStart) {
+    return "Prolongation · En attente du coup d'envoi";
+  }
+  if (halfState === "2ndET" && !match.teamA.secondHalfETStart) {
+    return "Prolongation · En attente de la 2e MT";
+  }
   if (coolingBreakActive) {
     return `Pause fraîcheur · ${getMatchMinute(match)}${suffix}`;
   }
   if (halfState === "halftime") {
     return `Mi-temps · 45'${suffix}`;
+  }
+  if (halfState === "halftimeET") {
+    return `Mi-temps Prolongation · 105'${suffix}`;
   }
   return `En cours · ${getMatchMinute(match)}${suffix}`;
 };
@@ -444,10 +483,13 @@ const mapSupabaseRowToMatch = (row: any): Match => ({
     halfState: row.team_a.halfState,
     firstHalfStart: row.team_a.firstHalfStart,
     secondHalfStart: row.team_a.secondHalfStart,
+    firstHalfETStart: row.team_a.firstHalfETStart,
+    secondHalfETStart: row.team_a.secondHalfETStart,
     liveTracking: row.team_a.liveTracking,
     isExtraTime: row.team_a.isExtraTime,
     isPenalties: row.team_a.isPenalties,
-    penaltiesScore: row.team_a.penaltiesScore
+    penaltiesScore: row.team_a.penaltiesScore,
+    penaltiesSequence: row.team_a.penaltiesSequence
   },
   teamB: {
     name: row.team_b.name,
@@ -460,7 +502,8 @@ const mapSupabaseRowToMatch = (row: any): Match => ({
     reds: row.team_b.reds,
     venueCity: row.team_b.venueCity,
     venueCountry: row.team_b.venueCountry,
-    penaltiesScore: row.team_b.penaltiesScore
+    penaltiesScore: row.team_b.penaltiesScore,
+    penaltiesSequence: row.team_b.penaltiesSequence
   }
 });
 
@@ -846,6 +889,12 @@ function Index() {
               if (fsMatch.teamA.secondHalfStart !== undefined) {
                 m.teamA.secondHalfStart = fsMatch.teamA.secondHalfStart;
               }
+              if (fsMatch.teamA.firstHalfETStart !== undefined) {
+                m.teamA.firstHalfETStart = fsMatch.teamA.firstHalfETStart;
+              }
+              if (fsMatch.teamA.secondHalfETStart !== undefined) {
+                m.teamA.secondHalfETStart = fsMatch.teamA.secondHalfETStart;
+              }
               if (fsMatch.teamA.liveTracking !== undefined) {
                 m.teamA.liveTracking = fsMatch.teamA.liveTracking;
               }
@@ -858,8 +907,14 @@ function Index() {
               if (fsMatch.teamA.penaltiesScore !== undefined) {
                 m.teamA.penaltiesScore = fsMatch.teamA.penaltiesScore;
               }
+              if (fsMatch.teamA.penaltiesSequence !== undefined) {
+                m.teamA.penaltiesSequence = fsMatch.teamA.penaltiesSequence;
+              }
               if (fsMatch.teamB && fsMatch.teamB.penaltiesScore !== undefined) {
                 m.teamB.penaltiesScore = fsMatch.teamB.penaltiesScore;
+              }
+              if (fsMatch.teamB && fsMatch.teamB.penaltiesSequence !== undefined) {
+                m.teamB.penaltiesSequence = fsMatch.teamB.penaltiesSequence;
               }
             }
           });
@@ -1385,36 +1440,51 @@ function renderEvents(team: Team, rightAlign = false) {
 
 function TeamRow({ team, won, showScore, isPenalties }: { team: Team; won: boolean; showScore: boolean; isPenalties?: boolean }) {
   return (
-    <div className="flex items-center gap-3 py-1">
-      <img
-        src={`https://flagcdn.com/w40/${team.flag}.png`}
-        srcSet={`https://flagcdn.com/w80/${team.flag}.png 2x`}
-        width={24}
-        height={18}
-        alt=""
-        loading="lazy"
-        className="h-[18px] w-6 shrink-0 rounded-sm object-cover ring-1 ring-black/5"
-      />
-      <span className={`flex-1 min-w-0 truncate text-sm ${won ? "font-semibold" : "font-normal"} text-[#202124]`}>
-        {team.name}
-      </span>
-      {team.yellowCard && (
-        <span className="inline-block h-3.5 w-2.5 rounded-[2px] bg-[#fabb05]" aria-label="Carton jaune" />
-      )}
-      {team.redCard && (
-        <span className="inline-block h-3.5 w-2.5 rounded-[2px] bg-[#d93025]" aria-label="Carton rouge" />
-      )}
-      {showScore && (
-        <div className="flex items-center gap-1">
-          {won && <ArrowUp size={14} className="text-[#5f6368]" />}
-          <span className={`w-5 text-right text-sm tabular-nums ${won ? "font-semibold text-[#202124]" : "text-[#5f6368]"}`}>
-            {team.score}
-          </span>
-          {isPenalties && team.penaltiesScore !== undefined && (
-            <span className="text-[11px] text-[#5f6368] bg-[#f1f3f4] px-1 rounded ml-1 font-normal" title="Tirs au but">
-              ({team.penaltiesScore})
+    <div className="flex flex-col py-1">
+      <div className="flex items-center gap-3">
+        <img
+          src={`https://flagcdn.com/w40/${team.flag}.png`}
+          srcSet={`https://flagcdn.com/w80/${team.flag}.png 2x`}
+          width={24}
+          height={18}
+          alt=""
+          loading="lazy"
+          className="h-[18px] w-6 shrink-0 rounded-sm object-cover ring-1 ring-black/5"
+        />
+        <span className={`flex-1 min-w-0 truncate text-sm ${won ? "font-semibold" : "font-normal"} text-[#202124]`}>
+          {team.name}
+        </span>
+        {team.yellowCard && (
+          <span className="inline-block h-3.5 w-2.5 rounded-[2px] bg-[#fabb05]" aria-label="Carton jaune" />
+        )}
+        {team.redCard && (
+          <span className="inline-block h-3.5 w-2.5 rounded-[2px] bg-[#d93025]" aria-label="Carton rouge" />
+        )}
+        {showScore && (
+          <div className="flex items-center gap-1">
+            {won && <ArrowUp size={14} className="text-[#5f6368]" />}
+            <span className={`w-5 text-right text-sm tabular-nums ${won ? "font-semibold text-[#202124]" : "text-[#5f6368]"}`}>
+              {team.score}
             </span>
-          )}
+            {isPenalties && team.penaltiesScore !== undefined && (
+              <span className="text-[11px] text-[#5f6368] bg-[#f1f3f4] px-1 rounded ml-1 font-normal" title="Tirs au but">
+                ({team.penaltiesScore})
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+      {isPenalties && team.penaltiesSequence && (
+        <div className="flex gap-1.5 mt-1.5 pl-9 animate-in fade-in duration-200">
+          {team.penaltiesSequence.split("").map((shot, idx) => {
+            if (shot === "o") {
+              return <span key={idx} className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block border border-emerald-600 shadow-sm" title="Réussi" />;
+            } else if (shot === "x") {
+              return <span key={idx} className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block border border-red-600 shadow-sm" title="Manqué" />;
+            } else {
+              return <span key={idx} className="w-2.5 h-2.5 rounded-full bg-gray-200 inline-block border border-gray-300 shadow-sm" title="À venir" />;
+            }
+          })}
         </div>
       )}
     </div>
