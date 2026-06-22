@@ -526,6 +526,7 @@ function Index() {
   const [activeKnockoutRound, setActiveKnockoutRound] = useState<"all" | "round_of_32" | "round_of_16" | "quarter_finals" | "semi_finals" | "final">("all");
   const [matches, setMatches] = useState<Match[]>([]);
   const [sortBy, setSortBy] = useState<"chrono_asc" | "chrono_desc" | "status_live_first">("chrono_asc");
+  const [activeFilter, setActiveFilter] = useState<"all" | "live" | "finished" | "scheduled" | "yesterday" | "today" | "tomorrow" | "later" | "past">("all");
   const [tick, setTick] = useState(0);
   const hasScrolledOnLoad = useRef(false);
   const [livePopup, setLivePopup] = useState<{ teamA: string; teamB: string; id: string } | null>(null);
@@ -1078,6 +1079,18 @@ function Index() {
         }
       }
 
+      if (activeFilter !== "all") {
+        if (activeFilter === "live" && m.status !== "live") return false;
+        if (activeFilter === "finished" && m.status !== "finished") return false;
+        if (activeFilter === "scheduled" && m.status !== "scheduled") return false;
+
+        if (activeFilter === "yesterday" && m.day !== "yesterday") return false;
+        if (activeFilter === "today" && m.day !== "today") return false;
+        if (activeFilter === "tomorrow" && m.day !== "tomorrow") return false;
+        if (activeFilter === "later" && m.day !== "later") return false;
+        if (activeFilter === "past" && m.day !== "past" && m.day !== "yesterday") return false;
+      }
+
       if (!q) return true;
       const normGroup = normalizeString(m.group);
       const normTeamA = normalizeString(m.teamA.name);
@@ -1143,12 +1156,13 @@ function Index() {
 
       return (a.id || "").localeCompare(b.id || "");
     });
-  }, [processedMatches, query, activeTab, activeGroup, activeKnockoutRound, sortBy, todayStr, yesterdayStr, tomorrowStr]);
+  }, [processedMatches, query, activeTab, activeGroup, activeKnockoutRound, sortBy, activeFilter, todayStr, yesterdayStr, tomorrowStr]);
 
   const handleTabChange = (tab: "all" | "group_stage" | "knockout_stage") => {
     setActiveTab(tab);
     setActiveGroup("all");
     setActiveKnockoutRound("all");
+    setActiveFilter("all");
   };
 
   const getKnockoutRoundTitle = (round: string) => {
@@ -1160,6 +1174,37 @@ function Index() {
       case "final": return "Finale";
       default: return "Phases finales";
     }
+  };
+
+  const getFilterCount = (filterType: typeof activeFilter) => {
+    const tabFiltered = processedMatches.filter((m) => {
+      if (activeTab === "group_stage") {
+        if (!m.group.startsWith("Groupe ")) return false;
+        if (activeGroup !== "all" && m.group !== `Groupe ${activeGroup}`) return false;
+      } else if (activeTab === "knockout_stage") {
+        if (m.group.startsWith("Groupe ")) return false;
+        if (activeKnockoutRound !== "all") {
+          const groupLower = m.group.toLowerCase();
+          if (activeKnockoutRound === "round_of_32" && !groupLower.includes("seizième")) return false;
+          if (activeKnockoutRound === "round_of_16" && !groupLower.includes("huitième")) return false;
+          if (activeKnockoutRound === "quarter_finals" && !groupLower.includes("quart")) return false;
+          if (activeKnockoutRound === "semi_finals" && !groupLower.includes("demi") && !groupLower.includes("3e")) return false;
+          if (activeKnockoutRound === "final" && (!groupLower.includes("finale") || groupLower.includes("demi"))) return false;
+        }
+      }
+      return true;
+    });
+
+    if (filterType === "all") return tabFiltered.length;
+    if (filterType === "live") return tabFiltered.filter(m => m.status === "live").length;
+    if (filterType === "finished") return tabFiltered.filter(m => m.status === "finished").length;
+    if (filterType === "scheduled") return tabFiltered.filter(m => m.status === "scheduled").length;
+    if (filterType === "yesterday") return tabFiltered.filter(m => m.day === "yesterday").length;
+    if (filterType === "today") return tabFiltered.filter(m => m.day === "today").length;
+    if (filterType === "tomorrow") return tabFiltered.filter(m => m.day === "tomorrow").length;
+    if (filterType === "later") return tabFiltered.filter(m => m.day === "later").length;
+    if (filterType === "past") return tabFiltered.filter(m => m.day === "past" || m.day === "yesterday").length;
+    return 0;
   };
 
   const standings = useMemo(() => {
@@ -1210,6 +1255,18 @@ function Index() {
                 <option value="status_live_first">Statut (Direct d'abord)</option>
               </select>
             </div>
+          </div>
+
+          <div className="mt-3 flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none whitespace-nowrap border-t border-gray-50 pt-2.5">
+            <FilterChip label="Tous" active={activeFilter === "all"} onClick={() => setActiveFilter("all")} count={getFilterCount("all")} />
+            <FilterChip label="En cours" active={activeFilter === "live"} onClick={() => setActiveFilter("live")} count={getFilterCount("live")} isLive />
+            <FilterChip label="Terminés" active={activeFilter === "finished"} onClick={() => setActiveFilter("finished")} count={getFilterCount("finished")} />
+            <FilterChip label="Programmés" active={activeFilter === "scheduled"} onClick={() => setActiveFilter("scheduled")} count={getFilterCount("scheduled")} />
+            <FilterChip label="Passés" active={activeFilter === "past"} onClick={() => setActiveFilter("past")} count={getFilterCount("past")} />
+            <FilterChip label="Hier" active={activeFilter === "yesterday"} onClick={() => setActiveFilter("yesterday")} count={getFilterCount("yesterday")} />
+            <FilterChip label="Aujourd'hui" active={activeFilter === "today"} onClick={() => setActiveFilter("today")} count={getFilterCount("today")} />
+            <FilterChip label="Demain" active={activeFilter === "tomorrow"} onClick={() => setActiveFilter("tomorrow")} count={getFilterCount("tomorrow")} />
+            <FilterChip label="Plus tard" active={activeFilter === "later"} onClick={() => setActiveFilter("later")} count={getFilterCount("later")} />
           </div>
 
           {activeTab === "group_stage" && (
@@ -1361,6 +1418,40 @@ function GroupTab({ label, active, onClick }: { label: string; active: boolean; 
       }`}
     >
       {label}
+    </button>
+  );
+}
+
+function FilterChip({
+  label,
+  active,
+  onClick,
+  count,
+  isLive,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+  count: number;
+  isLive?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`shrink-0 flex items-center gap-1.5 rounded-full border text-[11px] sm:text-xs font-semibold transition duration-200 px-3 py-1 sm:px-3.5 sm:py-1.5 ${
+        active
+          ? "border-blue-600 bg-blue-600 text-white shadow-sm shadow-blue-500/10"
+          : "border-[#e5e7eb] bg-white text-[#5f6368] hover:border-[#d2d5da] hover:text-[#202124]"
+      }`}
+    >
+      {isLive && (
+        <span className={`h-1.5 w-1.5 rounded-full ${active ? "bg-white" : "bg-red-500"} animate-pulse`} />
+      )}
+      <span>{label}</span>
+      <span className={`text-[10px] ${active ? "text-blue-100" : "text-[#80868b]"} font-medium`}>
+        ({count})
+      </span>
     </button>
   );
 }
