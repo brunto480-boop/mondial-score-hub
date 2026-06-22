@@ -1009,28 +1009,44 @@
       if (isInteractive && status === "live") {
         const todayStr = getLocalDateString(0);
         const dateInput = document.getElementById("match-date-input");
-        if (dateInput && dateInput.value !== todayStr) {
+        if (dateInput) {
           if (window.fpInstance) {
             window.fpInstance.setDate(todayStr);
           } else {
             dateInput.value = todayStr;
           }
-          
-          const daySelect = document.getElementById("day");
-          if (daySelect) {
-            daySelect.value = "today";
-          }
-          
-          const now = new Date();
-          const hours = String(now.getHours()).padStart(2, '0');
-          const minutes = String(now.getMinutes()).padStart(2, '0');
-          const timeInput = document.getElementById("match-time-input");
-          if (timeInput) {
-            timeInput.value = `${hours}:${minutes}`;
-          }
-          
-          showToast("📅 Date et heure ajustées à aujourd'hui car le match passe en direct.", "info");
         }
+        
+        const daySelect = document.getElementById("day");
+        if (daySelect) {
+          daySelect.value = "today";
+        }
+        
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const timeInput = document.getElementById("match-time-input");
+        if (timeInput) {
+          timeInput.value = `${hours}:${minutes}`;
+        }
+        
+        // Reset score inputs to 0
+        const scoreAInput = document.getElementById("scoreA");
+        const scoreBInput = document.getElementById("scoreB");
+        if (scoreAInput) scoreAInput.value = "0";
+        if (scoreBInput) scoreBInput.value = "0";
+
+        // Uncheck extra time and penalties
+        const etCheck = document.getElementById("match-is-extra-time");
+        const penCheck = document.getElementById("match-is-penalties");
+        if (etCheck) etCheck.checked = false;
+        if (penCheck) penCheck.checked = false;
+        togglePenaltiesInput();
+
+        // Flag to wipe goals/events upon save
+        window.shouldClearLiveEvents = true;
+        
+        showToast("📅 Date, heure et scores réinitialisés car le match passe en direct.", "info");
       }
     }
 
@@ -1095,7 +1111,13 @@
       const dayVal = document.getElementById("day").value;
       const statusVal = document.getElementById("status").value;
       const dateVal = document.getElementById("match-date-input").value;
-      const timeVal = document.getElementById("match-time-input").value;
+      
+      let timeVal = document.getElementById("match-time-input").value.trim();
+      // If timeVal contains seconds (e.g. 20:00:00), truncate them
+      if (/^\d{1,2}:\d{2}:\d{2}$/.test(timeVal)) {
+        timeVal = timeVal.substring(0, timeVal.lastIndexOf(':'));
+        document.getElementById("match-time-input").value = timeVal;
+      }
       
       const venueCityVal = document.getElementById("match-venue-city").value.trim();
       const venueCountryVal = document.getElementById("match-venue-country").value;
@@ -1173,6 +1195,25 @@
         const idx = matches.findIndex(m => m.id === editingMatchId);
         if (idx !== -1) {
           const match = matches[idx];
+          
+          if (window.shouldClearLiveEvents) {
+            match.teamA.goals = [];
+            match.teamA.yellows = [];
+            match.teamA.reds = [];
+            match.teamB.goals = [];
+            match.teamB.yellows = [];
+            match.teamB.reds = [];
+            match.teamA.score = 0;
+            match.teamB.score = 0;
+            delete match.teamA.penaltiesScore;
+            delete match.teamB.penaltiesScore;
+            delete match.teamA.penaltiesSequence;
+            delete match.teamB.penaltiesSequence;
+            match.teamA.isExtraTime = false;
+            match.teamA.isPenalties = false;
+            window.shouldClearLiveEvents = false;
+          }
+          
           match.group = groupVal;
           match.day = dayVal;
           match.status = statusVal;
@@ -1412,6 +1453,7 @@
       document.getElementById("match-time-input").value = getCurrentTime24h();
       document.getElementById("match-venue-city").value = "";
       document.getElementById("match-venue-country").value = "États-Unis";
+      window.shouldClearLiveEvents = false;
       toggleScoreInputs();
     }
 
