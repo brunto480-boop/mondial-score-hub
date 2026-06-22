@@ -3311,9 +3311,11 @@
             group: item.group || "Groupe A",
             day: item.day || "today",
             status: statusVal,
-            date: item.date || "20:00",
-            time: item.time || "20:00",
             rawDate: item.rawDate || new Date().toISOString().split('T')[0],
+            date: (item.date && !/^\d{2}[:h]\d{2}$/.test(item.date) && isNaN(Date.parse(item.date))) 
+              ? item.date 
+              : formatFrenchDate(item.rawDate || new Date().toISOString().split('T')[0]),
+            time: item.time || (item.date && /^\d{2}[:h]\d{2}$/.test(item.date) ? item.date : "20:00"),
             teamA: {
               name: item.teamA.name,
               flag: item.teamA.flag || "un",

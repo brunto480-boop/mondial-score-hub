@@ -925,7 +925,7 @@ function Index() {
 
           const matchesToSync = apiMatches.filter((m) => {
             const fsMatch = dbMap.get(m.id);
-            if (!fsMatch) return true;
+            if (!fsMatch) return tempMatches.length === 0;
 
             const apiFinished = m.status === "finished";
             const fsFinished = fsMatch.status === "finished";
@@ -952,12 +952,15 @@ function Index() {
 
         // Merge Supabase and API matches. Supabase version takes priority.
         const mergedMap = new Map<string, Match>();
-        apiMatches.forEach((m) => {
-          mergedMap.set(m.id, m);
-        });
-        tempMatches.forEach((m) => {
-          mergedMap.set(m.id, m);
-        });
+        if (tempMatches.length === 0) {
+          apiMatches.forEach((m) => {
+            mergedMap.set(m.id, m);
+          });
+        } else {
+          tempMatches.forEach((m) => {
+            mergedMap.set(m.id, m);
+          });
+        }
 
         const merged = Array.from(mergedMap.values());
         const clean = merged.filter(
