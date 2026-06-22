@@ -1352,9 +1352,9 @@ function MatchCard({ match }: { match: Match }) {
       <div className="flex items-stretch gap-3">
         <div className="flex-1 min-w-0">
           <div className="mb-2 text-xs text-[#5f6368]">{match.group}</div>
-          <TeamRow team={match.teamA} won={aWins} showScore={finished || (isLive && match.teamA.liveTracking === true)} isPenalties={match.teamA.isPenalties} />
+          <TeamRow team={match.teamA} won={aWins} showScore={finished || (isLive && match.teamA.liveTracking === true)} isPenalties={match.teamA.isPenalties} isFinished={finished} />
           <div className="my-1 h-px bg-[#f1f3f4]" />
-          <TeamRow team={match.teamB} won={bWins} showScore={finished || (isLive && match.teamA.liveTracking === true)} isPenalties={match.teamA.isPenalties} />
+          <TeamRow team={match.teamB} won={bWins} showScore={finished || (isLive && match.teamA.liveTracking === true)} isPenalties={match.teamA.isPenalties} isFinished={finished} />
           <div className="mt-2 flex items-center justify-between text-xs text-[#5f6368]">
             {isLive ? (
               <div className="flex items-center gap-2">
@@ -1438,7 +1438,7 @@ function renderEvents(team: Team, rightAlign = false) {
   );
 }
 
-function TeamRow({ team, won, showScore, isPenalties }: { team: Team; won: boolean; showScore: boolean; isPenalties?: boolean }) {
+function TeamRow({ team, won, showScore, isPenalties, isFinished }: { team: Team; won: boolean; showScore: boolean; isPenalties?: boolean; isFinished?: boolean }) {
   return (
     <div className="flex flex-col py-1">
       <div className="flex items-center gap-3">
@@ -1476,15 +1476,17 @@ function TeamRow({ team, won, showScore, isPenalties }: { team: Team; won: boole
       </div>
       {isPenalties && team.penaltiesSequence && (
         <div className="flex gap-1.5 mt-1.5 pl-9 animate-in fade-in duration-200">
-          {team.penaltiesSequence.split("").map((shot, idx) => {
-            if (shot === "o") {
-              return <span key={idx} className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block border border-emerald-600 shadow-sm" title="Réussi" />;
-            } else if (shot === "x") {
-              return <span key={idx} className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block border border-red-600 shadow-sm" title="Manqué" />;
-            } else {
-              return <span key={idx} className="w-2.5 h-2.5 rounded-full bg-gray-200 inline-block border border-gray-300 shadow-sm" title="À venir" />;
-            }
-          })}
+          {team.penaltiesSequence.split("")
+            .filter((shot) => !isFinished || shot !== ".")
+            .map((shot, idx) => {
+              if (shot === "o") {
+                return <span key={idx} className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block border border-emerald-600 shadow-sm" title="Réussi" />;
+              } else if (shot === "x") {
+                return <span key={idx} className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block border border-red-600 shadow-sm" title="Manqué" />;
+              } else {
+                return <span key={idx} className="w-2.5 h-2.5 rounded-full bg-gray-200 inline-block border border-gray-300 shadow-sm" title="À venir" />;
+              }
+            })}
         </div>
       )}
     </div>

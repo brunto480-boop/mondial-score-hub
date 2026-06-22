@@ -852,6 +852,17 @@
 
     // Save matches to local storage
     function saveMatches() {
+      // Clean up pending shootout indicators for finished matches
+      matches.forEach(match => {
+        if (match.status === "finished") {
+          if (match.teamA && match.teamA.penaltiesSequence) {
+            match.teamA.penaltiesSequence = match.teamA.penaltiesSequence.replace(/\./g, "");
+          }
+          if (match.teamB && match.teamB.penaltiesSequence) {
+            match.teamB.penaltiesSequence = match.teamB.penaltiesSequence.replace(/\./g, "");
+          }
+        }
+      });
       localStorage.setItem("mondial_matches", JSON.stringify(matches));
     }
 
