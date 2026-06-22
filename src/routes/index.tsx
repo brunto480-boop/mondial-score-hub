@@ -525,6 +525,7 @@ function Index() {
   const [activeGroup, setActiveGroup] = useState<"all" | (typeof GROUPS)[number]>("all");
   const [activeKnockoutRound, setActiveKnockoutRound] = useState<"all" | "round_of_32" | "round_of_16" | "quarter_finals" | "semi_finals" | "final">("all");
   const [matches, setMatches] = useState<Match[]>([]);
+  const [sortBy, setSortBy] = useState<"chrono_asc" | "chrono_desc" | "status_live_first">("chrono_asc");
   const [tick, setTick] = useState(0);
   const hasScrolledOnLoad = useRef(false);
   const [livePopup, setLivePopup] = useState<{ teamA: string; teamB: string; id: string } | null>(null);
@@ -1078,10 +1079,21 @@ function Index() {
       }
 
       if (!q) return true;
+      const normGroup = normalizeString(m.group);
+      const normTeamA = normalizeString(m.teamA.name);
+      const normTeamB = normalizeString(m.teamB.name);
+
+      // Support common abbreviations for groups (e.g., "group a" -> "groupe a", "gr a" -> "groupe a", "g a" -> "groupe a")
+      const cleanedQuery = q
+        .replace(/\bgr\b/g, "groupe")
+        .replace(/\bgroup\b/g, "groupe")
+        .replace(/\bg\b/g, "groupe");
+
       return (
-        normalizeString(m.group).includes(q) ||
-        normalizeString(m.teamA.name).includes(q) ||
-        normalizeString(m.teamB.name).includes(q)
+        normGroup.includes(q) ||
+        normGroup.includes(cleanedQuery) ||
+        normTeamA.includes(q) ||
+        normTeamB.includes(q)
       );
     });
 
@@ -1093,15 +1105,37 @@ function Index() {
       return "2026-12-31";
     };
 
-    // Stable chronological sort: date -> time -> group -> id
+    const getStatusWeight = (status: string) => {
+      if (status === "live") return 0;
+      if (status === "scheduled") return 1;
+      return 2; // finished
+    };
+
+    // Sort according to selected sort option
     return res.sort((a, b) => {
+      if (sortBy === "status_live_first") {
+        const weightA = getStatusWeight(a.status);
+        const weightB = getStatusWeight(b.status);
+        if (weightA !== weightB) return weightA - weightB;
+      }
+
       const dateA = getSortableDate(a);
       const dateB = getSortableDate(b);
-      if (dateA !== dateB) return dateA.localeCompare(dateB);
 
-      const timeA = a.time || "";
-      const timeB = b.time || "";
-      if (timeA !== timeB) return timeA.localeCompare(timeB);
+      if (sortBy === "chrono_desc") {
+        if (dateA !== dateB) return dateB.localeCompare(dateA);
+
+        const timeA = a.time || "";
+        const timeB = b.time || "";
+        if (timeA !== timeB) return timeB.localeCompare(timeA);
+      } else {
+        // chrono_asc or status_live_first fallback
+        if (dateA !== dateB) return dateA.localeCompare(dateB);
+
+        const timeA = a.time || "";
+        const timeB = b.time || "";
+        if (timeA !== timeB) return timeA.localeCompare(timeB);
+      }
 
       const groupA = a.group || "";
       const groupB = b.group || "";
@@ -1109,7 +1143,7 @@ function Index() {
 
       return (a.id || "").localeCompare(b.id || "");
     });
-  }, [processedMatches, query, activeTab, activeGroup, activeKnockoutRound, todayStr, yesterdayStr, tomorrowStr]);
+  }, [processedMatches, query, activeTab, activeGroup, activeKnockoutRound, sortBy, todayStr, yesterdayStr, tomorrowStr]);
 
   const handleTabChange = (tab: "all" | "group_stage" | "knockout_stage") => {
     setActiveTab(tab);
@@ -1157,11 +1191,26 @@ function Index() {
             </div>
           </div>
 
-          <nav className="mt-3 flex flex-wrap gap-1.5 sm:gap-2">
-            <GroupTab label="Tous" active={activeTab === "all"} onClick={() => handleTabChange("all")} />
-            <GroupTab label="Phase de groupes" active={activeTab === "group_stage"} onClick={() => handleTabChange("group_stage")} />
-            <GroupTab label="Phase finale" active={activeTab === "knockout_stage"} onClick={() => handleTabChange("knockout_stage")} />
-          </nav>
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-3">
+            <nav className="flex flex-wrap gap-1.5 sm:gap-2">
+              <GroupTab label="Tous" active={activeTab === "all"} onClick={() => handleTabChange("all")} />
+              <GroupTab label="Phase de groupes" active={activeTab === "group_stage"} onClick={() => handleTabChange("group_stage")} />
+              <GroupTab label="Phase finale" active={activeTab === "knockout_stage"} onClick={() => handleTabChange("knockout_stage")} />
+            </nav>
+
+            <div className="flex items-center gap-1.5 shrink-0 text-xs font-medium text-[#5f6368]">
+              <span>Trier par :</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="bg-white border border-[#e5e7eb] rounded-lg px-2 py-0.5 sm:px-2.5 sm:py-1 text-[#202124] focus:outline-none focus:border-[#1a73e8] shadow-sm text-xs cursor-pointer"
+              >
+                <option value="chrono_asc">Date (Chronologique)</option>
+                <option value="chrono_desc">Date (Antichronologique)</option>
+                <option value="status_live_first">Statut (Direct d'abord)</option>
+              </select>
+            </div>
+          </div>
 
           {activeTab === "group_stage" && (
             <div className="mt-3 py-2 px-3 bg-gray-50/80 rounded-xl border border-gray-150 flex flex-wrap gap-1.5 sm:gap-2 animate-in slide-in-from-top-2 duration-200">
@@ -1365,7 +1414,7 @@ function MatchCard({ match }: { match: Match }) {
               </div>
             ) : finished ? (
               <span className="font-medium text-[#202124]">
-                Terminé · {match.teamA.isPenalties ? "t.a.b." : match.teamA.isExtraTime ? "A.P." : "FT"}{match.date ? ` · ${match.date}` : ""}{match.time ? ` · ${match.time.replace(':', 'h')}` : ""}
+                Terminé · {match.teamA.isPenalties ? "TAB" : match.teamA.isExtraTime ? "A.P." : "FT"}{match.date ? ` · ${match.date}` : ""}{match.time ? ` · ${match.time.replace(':', 'h')}` : ""}
               </span>
             ) : (
               <span className="font-medium text-[#1a73e8]">

@@ -275,7 +275,7 @@
               </label>
               <label class="flex items-center text-xs font-medium text-[#202124] cursor-pointer">
                 <input type="checkbox" id="match-is-penalties" onchange="togglePenaltiesInput()" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2">
-                Tirs au but (t.a.b.)
+                Tirs au but (TAB)
               </label>
             </div>
             
@@ -852,8 +852,45 @@
 
     // Save matches to local storage
     function saveMatches() {
-      // Clean up pending shootout indicators for finished matches
       matches.forEach(match => {
+        if (!match.teamA) match.teamA = { name: "", flag: "" };
+        if (!match.teamB) match.teamB = { name: "", flag: "" };
+
+        if (match.teamA.isPenalties) {
+          const scoreA = match.teamA.penaltiesScore || 0;
+          const scoreB = match.teamB.penaltiesScore || 0;
+          const isFinished = match.status === "finished";
+
+          const countGoals = (seq) => (seq || "").split("").filter(c => c === "o").length;
+
+          // Sync Team A sequence
+          let seqA = match.teamA.penaltiesSequence;
+          if (!seqA || countGoals(seqA) !== scoreA) {
+            const totalShots = Math.max(5, scoreA, scoreB);
+            let chars = Array(totalShots).fill(isFinished ? "x" : ".");
+            for (let i = 0; i < scoreA; i++) {
+              chars[i] = "o";
+            }
+            match.teamA.penaltiesSequence = chars.join("");
+          }
+
+          // Sync Team B sequence
+          let seqB = match.teamB.penaltiesSequence;
+          if (!seqB || countGoals(seqB) !== scoreB) {
+            const totalShots = Math.max(5, scoreA, scoreB);
+            let chars = Array(totalShots).fill(isFinished ? "x" : ".");
+            for (let i = 0; i < scoreB; i++) {
+              chars[i] = "o";
+            }
+            match.teamB.penaltiesSequence = chars.join("");
+          }
+        } else {
+          // Clean up sequence fields if not in penalties
+          delete match.teamA.penaltiesSequence;
+          delete match.teamB.penaltiesSequence;
+        }
+
+        // Clean up pending shootout indicators for finished matches
         if (match.status === "finished") {
           if (match.teamA && match.teamA.penaltiesSequence) {
             match.teamA.penaltiesSequence = match.teamA.penaltiesSequence.replace(/\./g, "");
