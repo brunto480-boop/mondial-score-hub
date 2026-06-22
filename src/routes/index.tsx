@@ -100,6 +100,9 @@ const getLiveStatusText = (match: Match): string => {
   const halfState = match.teamA.halfState || "1st";
   const coolingBreakActive = match.teamA.coolingBreak;
 
+  if (halfState === "1st" && !match.teamA.firstHalfStart) {
+    return "En attente du coup d'envoi";
+  }
   if (coolingBreakActive) {
     return `Pause fraîcheur · ${getMatchMinute(match)}`;
   }

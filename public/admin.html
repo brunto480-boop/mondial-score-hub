@@ -2242,10 +2242,19 @@
       if (idx !== -1) {
         const match = matches[idx];
         const nowStr = new Date().toISOString();
+        match.status = "live";
+        if (match.teamA.score === undefined || match.teamA.score === null) {
+          match.teamA.score = 0;
+        }
+        if (match.teamB.score === undefined || match.teamB.score === null) {
+          match.teamB.score = 0;
+        }
         if (half === "1st") {
           match.teamA.firstHalfStart = nowStr;
+          match.teamA.halfState = "1st";
         } else if (half === "2nd") {
           match.teamA.secondHalfStart = nowStr;
+          match.teamA.halfState = "2nd";
         }
         saveMatches();
         saveMatchToSupabase(match);
@@ -2290,6 +2299,9 @@
       const halfState = m.teamA.halfState || "1st";
       const coolingBreakActive = m.teamA.coolingBreak;
 
+      if (halfState === "1st" && !m.teamA.firstHalfStart) {
+        return "En attente du coup d'envoi";
+      }
       if (coolingBreakActive) {
         return `Pause fraîcheur · ${getMatchMinute(m)}`;
       }
@@ -2418,7 +2430,14 @@
           delete match.teamA.coolingBreak;
           delete match.teamA.coolingBreakStart;
         } else {
+          match.status = "live";
           match.teamA.halfState = state;
+          if (match.teamA.score === undefined || match.teamA.score === null) {
+            match.teamA.score = 0;
+          }
+          if (match.teamB.score === undefined || match.teamB.score === null) {
+            match.teamB.score = 0;
+          }
           if (state === "2nd") {
             match.teamA.secondHalfStart = new Date().toISOString(); // Start second half immediately!
           }
