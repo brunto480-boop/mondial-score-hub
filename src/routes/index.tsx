@@ -547,15 +547,40 @@ function Index() {
 
   const processedMatches = useMemo(() => {
     return matches.map((m) => {
+      let rawDate = m.rawDate;
+      let dateDisplay = m.date;
+
+      const isMidnight = m.time && (m.time.replace('h', ':').startsWith("00:00"));
+      if (isMidnight && m.rawDate) {
+        try {
+          const [year, month, day] = m.rawDate.split('-').map(Number);
+          const d = new Date(year, month - 1, day);
+          d.setDate(d.getDate() - 1);
+          const y = d.getFullYear();
+          const mo = String(d.getMonth() + 1).padStart(2, '0');
+          const dy = String(d.getDate()).padStart(2, '0');
+          rawDate = `${y}-${mo}-${dy}`;
+          
+          let dateStr = d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+          dateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+          dateDisplay = dateStr.replace(/([a-zA-Z]{3,4})\.?\s(\d+)\s([a-zA-Zûé]+)\.?/, (match, p1, p2, p3) => {
+            const wkday = p1.endsWith('.') ? p1 : p1 + '.';
+            return `${wkday} ${p2} ${p3}`;
+          });
+        } catch (e) {
+          console.error("Midnight shift error:", e);
+        }
+      }
+
       let dayVal = m.day || "later";
-      if (m.rawDate) {
-        if (m.rawDate === todayStr) {
+      if (rawDate) {
+        if (rawDate === todayStr) {
           dayVal = "today";
-        } else if (m.rawDate === yesterdayStr) {
+        } else if (rawDate === yesterdayStr) {
           dayVal = "yesterday";
-        } else if (m.rawDate === tomorrowStr) {
+        } else if (rawDate === tomorrowStr) {
           dayVal = "tomorrow";
-        } else if (m.rawDate < yesterdayStr) {
+        } else if (rawDate < yesterdayStr) {
           dayVal = "past";
         } else {
           dayVal = "later";
@@ -596,6 +621,8 @@ function Index() {
         ...m,
         day: dayVal,
         status: statusVal,
+        date: dateDisplay,
+        rawDate: rawDate,
         teamA: {
           ...m.teamA,
           score: scoreA
@@ -606,7 +633,7 @@ function Index() {
         }
       };
     });
-  }, [matches, todayStr, yesterdayStr, tomorrowStr, tick]);
+  }, [matches, todayStr, yesterdayStr, tomorrowStr, tick, mounted]);
 
   useEffect(() => {
     // Initial fetch from localStorage for fast startup
