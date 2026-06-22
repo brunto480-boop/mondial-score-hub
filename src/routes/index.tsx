@@ -553,6 +553,8 @@ function Index() {
           dayVal = "yesterday";
         } else if (m.rawDate === tomorrowStr) {
           dayVal = "tomorrow";
+        } else if (m.rawDate < yesterdayStr) {
+          dayVal = "past";
         } else {
           dayVal = "later";
         }
@@ -1112,6 +1114,7 @@ function Index() {
 
     const getSortableDate = (m: Match) => {
       if (m.rawDate) return m.rawDate;
+      if (m.day === "past") return "2026-01-01";
       if (m.day === "yesterday") return yesterdayStr;
       if (m.day === "today") return todayStr;
       if (m.day === "tomorrow") return tomorrowStr;
@@ -1177,6 +1180,7 @@ function Index() {
   };
 
   const getFilterCount = (filterType: typeof activeFilter) => {
+    const q = normalizeString(query.trim());
     const tabFiltered = processedMatches.filter((m) => {
       if (activeTab === "group_stage") {
         if (!m.group.startsWith("Groupe ")) return false;
@@ -1192,6 +1196,27 @@ function Index() {
           if (activeKnockoutRound === "final" && (!groupLower.includes("finale") || groupLower.includes("demi"))) return false;
         }
       }
+
+      if (q) {
+        const normGroup = normalizeString(m.group);
+        const normTeamA = normalizeString(m.teamA.name);
+        const normTeamB = normalizeString(m.teamB.name);
+
+        const cleanedQuery = q
+          .replace(/\bgr\b/g, "groupe")
+          .replace(/\bgroup\b/g, "groupe")
+          .replace(/\bg\b/g, "groupe");
+
+        const matchSearch = (
+          normGroup.includes(q) ||
+          normGroup.includes(cleanedQuery) ||
+          normTeamA.includes(q) ||
+          normTeamB.includes(q)
+        );
+
+        if (!matchSearch) return false;
+      }
+
       return true;
     });
 

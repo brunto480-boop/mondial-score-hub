@@ -310,13 +310,18 @@
           <span>Importer depuis un JSON</span>
         </h2>
         <p class="text-xs text-slate-600 mb-3 leading-normal">
-          Collez le code JSON d'un match (ou d'un tableau de matchs) ci-dessous pour l'importer instantanément.
+          Collez le code JSON d'un match (ou d'un tableau de matchs) ci-dessous pour l'importer instantanément. Pour plus de détails sur les formats et règles d'import, téléchargez la <a href="/documentation-import-json.pdf" download class="text-blue-600 hover:underline font-semibold inline-flex items-center gap-0.5"><i data-lucide="file-text" class="w-3 h-3 inline"></i>documentation PDF</a>.
         </p>
         
         <!-- Visual Example Box -->
         <div class="mb-3 bg-white/90 rounded-lg p-2.5 border border-blue-100 text-[10px] font-mono text-slate-700 shadow-sm">
           <div class="flex justify-between items-center mb-1 pb-1 border-b border-gray-200">
-            <span class="text-blue-800 font-semibold uppercase text-[9px] tracking-wide">Format attendu :</span>
+            <div class="flex items-center gap-2">
+              <span class="text-blue-800 font-semibold uppercase text-[9px] tracking-wide">Format attendu :</span>
+              <a href="/documentation-import-json.pdf" download class="text-[9px] text-blue-600 hover:text-blue-800 font-bold transition hover:underline cursor-pointer flex items-center gap-1">
+                <i data-lucide="file-text" class="w-3 h-3"></i> Télécharger la doc PDF
+              </a>
+            </div>
             <button type="button" onclick="fillExampleJson()" class="text-blue-600 hover:text-blue-800 font-bold transition text-[9px] hover:underline cursor-pointer flex items-center gap-1">
               <i data-lucide="sparkles" class="w-3 h-3"></i> Insérer un exemple
             </button>
