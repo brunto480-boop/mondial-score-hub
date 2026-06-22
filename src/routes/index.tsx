@@ -528,11 +528,13 @@ function Index() {
   const [sortBy, setSortBy] = useState<"chrono_asc" | "chrono_desc" | "status_live_first">("chrono_asc");
   const [activeFilter, setActiveFilter] = useState<"all" | "live" | "finished" | "scheduled" | "yesterday" | "today" | "tomorrow" | "later" | "past">("all");
   const [tick, setTick] = useState(0);
+  const [mounted, setMounted] = useState(false);
   const hasScrolledOnLoad = useRef(false);
   const [livePopup, setLivePopup] = useState<{ teamA: string; teamB: string; id: string } | null>(null);
   const shownPopups = useRef<Set<string>>(new Set());
 
   useEffect(() => {
+    setMounted(true);
     const timer = setInterval(() => {
       setTick((t) => t + 1);
     }, 30000); // Recalculate match statuses and days every 30 seconds in real-time
@@ -561,11 +563,12 @@ function Index() {
       }
 
       let statusVal = m.status;
-      if (m.status === "scheduled" && m.rawDate && m.time) {
+      if (mounted && m.status === "scheduled" && m.rawDate && m.time) {
         try {
-          const [hours, minutes] = m.time.split(':');
-          const kickoff = new Date(m.rawDate);
-          kickoff.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+          const timeStr = m.time.replace('h', ':');
+          const [hours, minutes] = timeStr.split(':').map(Number);
+          const [yr, mo, dy] = m.rawDate.split('-').map(Number);
+          const kickoff = new Date(yr, mo - 1, dy, hours, minutes || 0, 0, 0);
           const now = new Date();
           const diffMs = now.getTime() - kickoff.getTime();
           if (diffMs >= 0) {
@@ -580,6 +583,7 @@ function Index() {
           console.error("Auto status calculation error:", e);
         }
       }
+
 
       let scoreA = m.teamA.score;
       let scoreB = m.teamB.score;
