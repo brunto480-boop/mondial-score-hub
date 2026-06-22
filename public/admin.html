@@ -1232,7 +1232,41 @@
           if (match.teamB.penaltiesScore === undefined) {
             match.teamB.penaltiesScore = 0;
           }
-          match[teamKey].penaltiesScore = Math.max(0, (match[teamKey].penaltiesScore || 0) + delta);
+          const oldScore = match[teamKey].penaltiesScore || 0;
+          const newScore = Math.max(0, oldScore + delta);
+          match[teamKey].penaltiesScore = newScore;
+
+          // Sync penaltiesSequence with penaltiesScore changes
+          let seq = match[teamKey].penaltiesSequence || ".....";
+          let chars = seq.split("");
+
+          if (delta > 0) {
+            // Adding a goal: find the first '.' or 'x' and turn it to 'o'
+            let dotIdx = chars.indexOf(".");
+            if (dotIdx !== -1) {
+              chars[dotIdx] = "o";
+            } else {
+              let xIdx = chars.indexOf("x");
+              if (xIdx !== -1) {
+                chars[xIdx] = "o";
+              } else {
+                chars.push("o");
+              }
+            }
+          } else if (delta < 0 && oldScore > 0) {
+            // Removing a goal: find the last 'o' and turn it to '.'
+            let lastOIdx = chars.lastIndexOf("o");
+            if (lastOIdx !== -1) {
+              chars[lastOIdx] = ".";
+            }
+          }
+
+          let newSeq = chars.join("");
+          // Sudden death check (auto-extend sequence if all shots are filled)
+          if (!newSeq.includes(".") && newSeq.length >= 5) {
+            newSeq += ".";
+          }
+          match[teamKey].penaltiesSequence = newSeq;
         } else {
           if (match.teamA.score === undefined) {
             match.teamA.score = 0;
