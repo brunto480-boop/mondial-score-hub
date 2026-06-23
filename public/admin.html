@@ -551,6 +551,45 @@
     </div>
   </div>
 
+  <!-- Modal d'ajout d'événement dans le formulaire principal -->
+  <div id="form-event-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/55 backdrop-blur-sm hidden">
+    <div class="bg-white border border-[#e5e7eb] rounded-xl max-w-sm w-full p-6 shadow-xl animate-in zoom-in-95 duration-200">
+      <div class="flex items-center gap-3 text-blue-600 mb-4">
+        <i data-lucide="plus-circle" class="w-6 h-6 shrink-0 text-blue-600"></i>
+        <h3 id="form-event-modal-title" class="text-lg font-bold text-[#202124]">Ajouter un événement</h3>
+      </div>
+      
+      <div class="space-y-4 mb-6">
+        <!-- Player name -->
+        <div>
+          <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2" for="form-event-modal-player">Nom du joueur</label>
+          <input id="form-event-modal-player" type="text" placeholder="Ex: Kylian Mbappé" onkeydown="if(event.key === 'Enter') submitFormEventModal(); else if(event.key === 'Escape') closeFormEventModal();" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-[#202124] focus:outline-none focus:border-blue-500">
+        </div>
+
+        <!-- Minute -->
+        <div>
+          <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2" for="form-event-modal-minute">Minute (optionnel)</label>
+          <input id="form-event-modal-minute" type="text" placeholder="Ex: 45+2, 90" onkeydown="if(event.key === 'Enter') submitFormEventModal(); else if(event.key === 'Escape') closeFormEventModal();" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-[#202124] focus:outline-none focus:border-blue-500">
+        </div>
+
+        <!-- Goal Type suffix (shown only for goals) -->
+        <div id="form-event-modal-suffix-container" class="hidden">
+          <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2" for="form-event-modal-suffix">Type de but</label>
+          <select id="form-event-modal-suffix" onkeydown="if(event.key === 'Enter') submitFormEventModal(); else if(event.key === 'Escape') closeFormEventModal();" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-[#202124] focus:outline-none focus:border-blue-500">
+            <option value="">But normal</option>
+            <option value=" (sp)">Penalty (sp)</option>
+            <option value=" (csc)">Contre son camp (csc)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-3">
+        <button type="button" onclick="closeFormEventModal()" class="px-4 py-2 text-sm font-medium bg-white hover:bg-gray-100 border border-gray-300 text-gray-700 rounded-lg transition">Annuler</button>
+        <button type="button" id="form-event-modal-submit-btn" class="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition hover:shadow-lg hover:shadow-blue-500/25">Valider</button>
+      </div>
+    </div>
+  </div>
+
   <footer class="border-t border-[#e5e7eb] bg-white py-4 mt-auto">
     <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
       Mondial Score Admin &copy; 2026. Toutes les modifications sont stockées en temps réel dans Supabase et synchronisées localement.
@@ -1723,31 +1762,69 @@
       teamB: { goals: [], yellows: [], reds: [] }
     };
 
+    let currentEventModalConfig = null;
+
     function addFormEvent(team, eventType) {
       const teamNameInput = document.getElementById(team === 'A' ? 'teamA-custom-name' : 'teamB-custom-name');
       const teamName = teamNameInput ? teamNameInput.value.trim() : (team === 'A' ? 'Équipe A' : 'Équipe B');
       
       const eventLabel = eventType === 'goals' ? 'but' : eventType === 'yellows' ? 'carton jaune' : 'carton rouge';
       
-      const player = prompt(`[${teamName}] Nom du joueur pour le ${eventLabel} :`);
-      if (!player) return;
+      // Save config to state
+      currentEventModalConfig = { team, eventType };
       
-      const minute = prompt(`[${teamName}] Minute du ${eventLabel} (optionnel, ex: 45+2) :`);
+      // Update modal title
+      document.getElementById('form-event-modal-title').innerText = `[${teamName}] Ajouter un ${eventLabel}`;
       
-      let suffix = "";
+      // Reset inputs
+      document.getElementById('form-event-modal-player').value = "";
+      document.getElementById('form-event-modal-minute').value = "";
+      
+      const suffixContainer = document.getElementById('form-event-modal-suffix-container');
+      const suffixSelect = document.getElementById('form-event-modal-suffix');
+      suffixSelect.value = "";
       if (eventType === 'goals') {
-        const isPen = confirm("Est-ce un Penalty ?");
-        if (isPen) {
-          suffix = " (sp)";
-        } else {
-          const isCsc = confirm("Est-ce un But Contre Son Camp (csc) ?");
-          if (isCsc) {
-            suffix = " (csc)";
-          }
-        }
+        suffixContainer.classList.remove('hidden');
+      } else {
+        suffixContainer.classList.add('hidden');
       }
       
-      const eventStr = minute ? `${player.trim()} ${minute.trim()}'${suffix}` : `${player.trim()}${suffix}`;
+      // Open modal
+      document.getElementById('form-event-modal').classList.remove('hidden');
+      
+      // Focus on player input
+      setTimeout(() => {
+        document.getElementById('form-event-modal-player').focus();
+      }, 50);
+      
+      // Set submit button action
+      const submitBtn = document.getElementById('form-event-modal-submit-btn');
+      submitBtn.onclick = submitFormEventModal;
+    }
+
+    function closeFormEventModal() {
+      currentEventModalConfig = null;
+      document.getElementById('form-event-modal').classList.add('hidden');
+    }
+
+    function submitFormEventModal() {
+      if (!currentEventModalConfig) return;
+      const { team, eventType } = currentEventModalConfig;
+      
+      const playerInput = document.getElementById('form-event-modal-player');
+      const minuteInput = document.getElementById('form-event-modal-minute');
+      const suffixSelect = document.getElementById('form-event-modal-suffix');
+      
+      const player = playerInput ? playerInput.value.trim() : "";
+      const minute = minuteInput ? minuteInput.value.trim() : "";
+      const suffix = eventType === 'goals' && suffixSelect ? suffixSelect.value : "";
+      
+      if (!player) {
+        showToast("❌ Le nom du joueur est obligatoire.", "error");
+        return;
+      }
+      
+      const eventStr = minute ? `${player} ${minute}'${suffix}` : `${player}${suffix}`;
       const stateKey = team === 'A' ? 'teamA' : 'teamB';
       window.formEventsState[stateKey][eventType].push(eventStr);
       
@@ -1761,6 +1838,7 @@
       }
       
       renderFormEvents();
+      closeFormEventModal();
     }
 
     function removeFormEvent(team, eventType, index) {
@@ -3813,6 +3891,8 @@
     window.addFormEvent = addFormEvent;
     window.removeFormEvent = removeFormEvent;
     window.renderFormEvents = renderFormEvents;
+    window.closeFormEventModal = closeFormEventModal;
+    window.submitFormEventModal = submitFormEventModal;
     window.cyclePenaltyShot = cyclePenaltyShot;
     window.toggleMatchStatus = toggleMatchStatus;
     window.updateMatchEvents = updateMatchEvents;
