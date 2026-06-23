@@ -1134,18 +1134,34 @@ function Index() {
       }
 
       if (!activeFilters.includes("all") && activeFilters.length > 0) {
-        const matchesSomeFilter = activeFilters.some((filter) => {
-          if (filter === "live") return m.status === "live";
-          if (filter === "finished") return m.status === "finished";
-          if (filter === "scheduled") return m.status === "scheduled";
-          if (filter === "yesterday") return m.day === "yesterday";
-          if (filter === "today") return m.day === "today";
-          if (filter === "tomorrow") return m.day === "tomorrow";
-          if (filter === "later") return m.day === "later";
-          if (filter === "past") return m.day === "past" || m.day === "yesterday";
-          return false;
-        });
-        if (!matchesSomeFilter) return false;
+        // 1. Status filter group (En cours, Terminés, Programmés)
+        const activeStatusFilters = activeFilters.filter(f => ["live", "finished", "scheduled"].includes(f));
+        // 2. Date filter group (Hier, Aujourd'hui, Demain, Plus tard, Passés)
+        const activeDateFilters = activeFilters.filter(f => ["past", "yesterday", "today", "tomorrow", "later"].includes(f));
+
+        // Apply status filter if any is selected (within the group, it is an OR filter)
+        if (activeStatusFilters.length > 0) {
+          const matchesStatus = activeStatusFilters.some(filter => {
+            if (filter === "live") return m.status === "live";
+            if (filter === "finished") return m.status === "finished";
+            if (filter === "scheduled") return m.status === "scheduled";
+            return false;
+          });
+          if (!matchesStatus) return false;
+        }
+
+        // Apply date filter if any is selected (within the group, it is an OR filter)
+        if (activeDateFilters.length > 0) {
+          const matchesDate = activeDateFilters.some(filter => {
+            if (filter === "yesterday") return m.day === "yesterday";
+            if (filter === "today") return m.day === "today";
+            if (filter === "tomorrow") return m.day === "tomorrow";
+            if (filter === "later") return m.day === "later";
+            if (filter === "past") return m.day === "past" || m.day === "yesterday";
+            return false;
+          });
+          if (!matchesDate) return false;
+        }
       }
 
 

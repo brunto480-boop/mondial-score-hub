@@ -156,7 +156,7 @@
               </div>
               <div>
                 <label class="block text-[10px] text-[#5f6368] mb-1" for="teamA-custom-name">Nom personnalisé</label>
-                <input id="teamA-custom-name" type="text" placeholder="Mexique" required class="w-full bg-white border border-gray-300 rounded-lg px-2 py-1.5 text-xs text-[#202124] focus:outline-none focus:border-blue-500">
+                <input id="teamA-custom-name" type="text" placeholder="Mexique" required oninput="renderFormEvents()" class="w-full bg-white border border-gray-300 rounded-lg px-2 py-1.5 text-xs text-[#202124] focus:outline-none focus:border-blue-500">
               </div>
             </div>
             <div class="grid grid-cols-2 gap-2 mt-2">
@@ -182,7 +182,7 @@
               </div>
               <div>
                 <label class="block text-[10px] text-[#5f6368] mb-1" for="teamB-custom-name">Nom personnalisé</label>
-                <input id="teamB-custom-name" type="text" placeholder="Corée du Sud" required class="w-full bg-white border border-gray-300 rounded-lg px-2 py-1.5 text-xs text-[#202124] focus:outline-none focus:border-blue-500">
+                <input id="teamB-custom-name" type="text" placeholder="Corée du Sud" required oninput="renderFormEvents()" class="w-full bg-white border border-gray-300 rounded-lg px-2 py-1.5 text-xs text-[#202124] focus:outline-none focus:border-blue-500">
               </div>
             </div>
             <div class="grid grid-cols-2 gap-2 mt-2">
@@ -287,6 +287,77 @@
               <div>
                 <label class="block text-[10px] text-[#5f6368] mb-1" for="penaltiesScoreB">Score TAB Équipe B</label>
                 <input id="penaltiesScoreB" type="number" min="0" value="0" class="w-full bg-white border border-gray-300 rounded-lg px-2 py-1 text-xs text-[#202124] focus:outline-none focus:border-blue-500">
+              </div>
+            </div>
+          </div>
+
+          <!-- Events Manager in Form (Goals, Yellows, Reds for Team A & Team B) -->
+          <div id="form-events-container" class="hidden border-t border-gray-200 pt-3 space-y-3 animate-in fade-in duration-200">
+            <label class="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Événements (Buteurs & Cartons)</label>
+            
+            <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-lg border border-slate-200">
+              <!-- Team A Events -->
+              <div class="space-y-2.5">
+                <div class="text-[10px] font-bold text-blue-600 truncate border-b border-blue-100 pb-1" id="form-teamA-header">Équipe A</div>
+                
+                <!-- Goals -->
+                <div>
+                  <div class="flex items-center justify-between mb-0.5">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase">⚽ Buts</span>
+                    <button type="button" onclick="addFormEvent('A', 'goals')" class="text-[9px] text-blue-600 hover:text-blue-800 font-bold hover:underline">+ Ajouter</button>
+                  </div>
+                  <div id="form-events-A-goals" class="space-y-1 max-h-24 overflow-y-auto"></div>
+                </div>
+
+                <!-- Yellows -->
+                <div>
+                  <div class="flex items-center justify-between mb-0.5">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase">🟨 Jaunes</span>
+                    <button type="button" onclick="addFormEvent('A', 'yellows')" class="text-[9px] text-blue-600 hover:text-blue-800 font-bold hover:underline">+ Ajouter</button>
+                  </div>
+                  <div id="form-events-A-yellows" class="space-y-1 max-h-24 overflow-y-auto"></div>
+                </div>
+
+                <!-- Reds -->
+                <div>
+                  <div class="flex items-center justify-between mb-0.5">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase">🟥 Rouges</span>
+                    <button type="button" onclick="addFormEvent('A', 'reds')" class="text-[9px] text-blue-600 hover:text-blue-800 font-bold hover:underline">+ Ajouter</button>
+                  </div>
+                  <div id="form-events-A-reds" class="space-y-1 max-h-24 overflow-y-auto"></div>
+                </div>
+              </div>
+
+              <!-- Team B Events -->
+              <div class="space-y-2.5">
+                <div class="text-[10px] font-bold text-amber-600 truncate border-b border-amber-100 pb-1" id="form-teamB-header">Équipe B</div>
+                
+                <!-- Goals -->
+                <div>
+                  <div class="flex items-center justify-between mb-0.5">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase">⚽ Buts</span>
+                    <button type="button" onclick="addFormEvent('B', 'goals')" class="text-[9px] text-blue-600 hover:text-blue-800 font-bold hover:underline">+ Ajouter</button>
+                  </div>
+                  <div id="form-events-B-goals" class="space-y-1 max-h-24 overflow-y-auto"></div>
+                </div>
+
+                <!-- Yellows -->
+                <div>
+                  <div class="flex items-center justify-between mb-0.5">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase">🟨 Jaunes</span>
+                    <button type="button" onclick="addFormEvent('B', 'yellows')" class="text-[9px] text-blue-600 hover:text-blue-800 font-bold hover:underline">+ Ajouter</button>
+                  </div>
+                  <div id="form-events-B-yellows" class="space-y-1 max-h-24 overflow-y-auto"></div>
+                </div>
+
+                <!-- Reds -->
+                <div>
+                  <div class="flex items-center justify-between mb-0.5">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase">🟥 Rouges</span>
+                    <button type="button" onclick="addFormEvent('B', 'reds')" class="text-[9px] text-blue-600 hover:text-blue-800 font-bold hover:underline">+ Ajouter</button>
+                  </div>
+                  <div id="form-events-B-reds" class="space-y-1 max-h-24 overflow-y-auto"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -787,6 +858,9 @@
         console.error("Error rendering matches:", err);
       }
 
+      // Initialize form events display
+      renderFormEvents();
+
       // Set default date and time input values to today and current hour
       const dateInput = document.getElementById("match-date-input");
       const defaultDateVal = (dateInput && dateInput.value) ? dateInput.value : getLocalDateString(0);
@@ -969,6 +1043,7 @@
         customFlagInput.value = "";
         preview.classList.add("hidden");
       }
+      renderFormEvents();
     }
 
     // Update flag preview dynamically
@@ -989,12 +1064,15 @@
     function toggleScoreInputs(isInteractive = false) {
       const status = document.getElementById("status").value;
       const scoreContainer = document.getElementById("score-inputs-container");
+      const formEventsContainer = document.getElementById("form-events-container");
       const liveTrackingContainer = document.getElementById("live-tracking-container");
       
       if (status === "finished" || status === "live") {
         scoreContainer.classList.remove("hidden");
+        if (formEventsContainer) formEventsContainer.classList.remove("hidden");
       } else {
         scoreContainer.classList.add("hidden");
+        if (formEventsContainer) formEventsContainer.classList.add("hidden");
       }
 
       if (status === "finished") {
@@ -1217,7 +1295,24 @@
             match.teamA.isExtraTime = false;
             match.teamA.isPenalties = false;
             window.shouldClearLiveEvents = false;
+            window.formEventsState = {
+              teamA: { goals: [], yellows: [], reds: [] },
+              teamB: { goals: [], yellows: [], reds: [] }
+            };
+            renderFormEvents();
+          } else {
+            match.teamA.goals = [...window.formEventsState.teamA.goals];
+            match.teamA.yellows = [...window.formEventsState.teamA.yellows];
+            match.teamA.reds = [...window.formEventsState.teamA.reds];
+            match.teamB.goals = [...window.formEventsState.teamB.goals];
+            match.teamB.yellows = [...window.formEventsState.teamB.yellows];
+            match.teamB.reds = [...window.formEventsState.teamB.reds];
           }
+          
+          match.teamA.redCard = match.teamA.reds.length > 0;
+          match.teamA.yellowCard = match.teamA.yellows.length > 0;
+          match.teamB.redCard = match.teamB.reds.length > 0;
+          match.teamB.yellowCard = match.teamB.yellows.length > 0;
           
           match.group = groupVal;
           match.day = dayVal;
@@ -1280,7 +1375,11 @@
         const teamA = {
           name: teamAName,
           flag: teamAFlag,
-          goals: [], yellows: [], reds: [],
+          goals: [...window.formEventsState.teamA.goals],
+          yellows: [...window.formEventsState.teamA.yellows],
+          reds: [...window.formEventsState.teamA.reds],
+          redCard: window.formEventsState.teamA.reds.length > 0,
+          yellowCard: window.formEventsState.teamA.yellows.length > 0,
           venueCity: venueCityVal,
           venueCountry: venueCountryVal,
           liveTracking: liveTrackingVal,
@@ -1294,7 +1393,11 @@
         const teamB = {
           name: teamBName,
           flag: teamBFlag,
-          goals: [], yellows: [], reds: [],
+          goals: [...window.formEventsState.teamB.goals],
+          yellows: [...window.formEventsState.teamB.yellows],
+          reds: [...window.formEventsState.teamB.reds],
+          redCard: window.formEventsState.teamB.reds.length > 0,
+          yellowCard: window.formEventsState.teamB.yellows.length > 0,
           ...(isPenaltiesVal ? { penaltiesScore: penaltiesScoreBVal } : {}),
           ...(isFinished ? { score: scoreBVal } : {})
         };
@@ -1394,6 +1497,21 @@
       document.getElementById("penaltiesScoreA").value = match.teamA.penaltiesScore !== undefined ? match.teamA.penaltiesScore : 0;
       document.getElementById("penaltiesScoreB").value = match.teamB.penaltiesScore !== undefined ? match.teamB.penaltiesScore : 0;
  
+      // Populate events from the match being edited
+      window.formEventsState = {
+        teamA: {
+          goals: [...(match.teamA.goals || [])],
+          yellows: [...(match.teamA.yellows || [])],
+          reds: [...(match.teamA.reds || [])]
+        },
+        teamB: {
+          goals: [...(match.teamB.goals || [])],
+          yellows: [...(match.teamB.yellows || [])],
+          reds: [...(match.teamB.reds || [])]
+        }
+      };
+      renderFormEvents();
+
       // Scroll to form
       document.getElementById("add-match-form").scrollIntoView({ behavior: 'smooth' });
     }
@@ -1459,6 +1577,11 @@
       document.getElementById("match-venue-city").value = "";
       document.getElementById("match-venue-country").value = "États-Unis";
       window.shouldClearLiveEvents = false;
+      window.formEventsState = {
+        teamA: { goals: [], yellows: [], reds: [] },
+        teamB: { goals: [], yellows: [], reds: [] }
+      };
+      renderFormEvents();
       toggleScoreInputs();
     }
 
@@ -1593,6 +1716,100 @@
         saveMatchToSupabase(match);
         filterAndRenderMatches();
       }
+    }
+
+    window.formEventsState = {
+      teamA: { goals: [], yellows: [], reds: [] },
+      teamB: { goals: [], yellows: [], reds: [] }
+    };
+
+    function addFormEvent(team, eventType) {
+      const teamNameInput = document.getElementById(team === 'A' ? 'teamA-custom-name' : 'teamB-custom-name');
+      const teamName = teamNameInput ? teamNameInput.value.trim() : (team === 'A' ? 'Équipe A' : 'Équipe B');
+      
+      const eventLabel = eventType === 'goals' ? 'but' : eventType === 'yellows' ? 'carton jaune' : 'carton rouge';
+      
+      const player = prompt(`[${teamName}] Nom du joueur pour le ${eventLabel} :`);
+      if (!player) return;
+      
+      const minute = prompt(`[${teamName}] Minute du ${eventLabel} (optionnel, ex: 45+2) :`);
+      
+      let suffix = "";
+      if (eventType === 'goals') {
+        const isPen = confirm("Est-ce un Penalty ?");
+        if (isPen) {
+          suffix = " (sp)";
+        } else {
+          const isCsc = confirm("Est-ce un But Contre Son Camp (csc) ?");
+          if (isCsc) {
+            suffix = " (csc)";
+          }
+        }
+      }
+      
+      const eventStr = minute ? `${player.trim()} ${minute.trim()}'${suffix}` : `${player.trim()}${suffix}`;
+      const stateKey = team === 'A' ? 'teamA' : 'teamB';
+      window.formEventsState[stateKey][eventType].push(eventStr);
+      
+      // Auto-increment score on goal addition in form
+      if (eventType === 'goals') {
+        const scoreInput = document.getElementById(team === 'A' ? 'scoreA' : 'scoreB');
+        if (scoreInput) {
+          const currentVal = parseInt(scoreInput.value) || 0;
+          scoreInput.value = currentVal + 1;
+        }
+      }
+      
+      renderFormEvents();
+    }
+
+    function removeFormEvent(team, eventType, index) {
+      const stateKey = team === 'A' ? 'teamA' : 'teamB';
+      window.formEventsState[stateKey][eventType].splice(index, 1);
+      
+      // Auto-decrement score on goal removal in form
+      if (eventType === 'goals') {
+        const scoreInput = document.getElementById(team === 'A' ? 'scoreA' : 'scoreB');
+        if (scoreInput) {
+          const currentVal = parseInt(scoreInput.value) || 0;
+          scoreInput.value = Math.max(0, currentVal - 1);
+        }
+      }
+      
+      renderFormEvents();
+    }
+
+    function renderFormEvents() {
+      const teamAName = document.getElementById('teamA-custom-name').value || 'Équipe A';
+      const teamBName = document.getElementById('teamB-custom-name').value || 'Équipe B';
+      
+      const headerA = document.getElementById('form-teamA-header');
+      const headerB = document.getElementById('form-teamB-header');
+      if (headerA) headerA.innerText = teamAName;
+      if (headerB) headerB.innerText = teamBName;
+      
+      const types = ['goals', 'yellows', 'reds'];
+      const teams = ['A', 'B'];
+      
+      teams.forEach(team => {
+        const stateKey = team === 'A' ? 'teamA' : 'teamB';
+        types.forEach(type => {
+          const container = document.getElementById(`form-events-${team}-${type}`);
+          if (!container) return;
+          
+          const list = window.formEventsState[stateKey][type] || [];
+          if (list.length === 0) {
+            container.innerHTML = `<span class="text-[9px] text-slate-400 italic">Aucun</span>`;
+          } else {
+            container.innerHTML = list.map((item, idx) => `
+              <div class="flex items-center justify-between bg-white border border-gray-200 rounded px-1.5 py-0.5 text-[10px]">
+                <span class="truncate font-medium text-slate-700">${item}</span>
+                <button type="button" onclick="removeFormEvent('${team}', '${type}', ${idx})" class="text-red-500 hover:text-red-700 font-bold ml-1 text-xs leading-none">×</button>
+              </div>
+            `).join('');
+          }
+        });
+      });
     }
 
     window.activeAddEvent = null; // Global state for adding event inline form
@@ -3593,6 +3810,9 @@
     window.startEditMatch = startEditMatch;
     window.cancelEditMatch = cancelEditMatch;
     window.changeScore = changeScore;
+    window.addFormEvent = addFormEvent;
+    window.removeFormEvent = removeFormEvent;
+    window.renderFormEvents = renderFormEvents;
     window.cyclePenaltyShot = cyclePenaltyShot;
     window.toggleMatchStatus = toggleMatchStatus;
     window.updateMatchEvents = updateMatchEvents;
