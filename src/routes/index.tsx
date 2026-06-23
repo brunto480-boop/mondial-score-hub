@@ -1655,9 +1655,13 @@ function formatEventString(eventStr: string): string {
 }
 
 function renderEvents(team: Team, rightAlign = false) {
-  const hasGoals = team.goals && team.goals.length > 0;
-  const hasYellows = team.yellows && team.yellows.length > 0;
-  const hasReds = team.reds && team.reds.length > 0;
+  const sortedGoals = team.goals ? [...team.goals].sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' })) : [];
+  const sortedYellows = team.yellows ? [...team.yellows].sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' })) : [];
+  const sortedReds = team.reds ? [...team.reds].sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' })) : [];
+
+  const hasGoals = sortedGoals.length > 0;
+  const hasYellows = sortedYellows.length > 0;
+  const hasReds = sortedReds.length > 0;
 
   if (!hasGoals && !hasYellows && !hasReds) {
     return <div className={`text-[10px] text-[#80868b] italic ${rightAlign ? "text-right" : "text-left"}`}>Aucun événement</div>;
@@ -1666,21 +1670,21 @@ function renderEvents(team: Team, rightAlign = false) {
   return (
     <div className={rightAlign ? "flex flex-col items-end" : "text-left"}>
       <div className={`space-y-1.5 ${rightAlign ? "w-fit flex flex-col items-start" : ""}`}>
-        {hasGoals && team.goals?.map((g, i) => (
+        {hasGoals && sortedGoals.map((g, i) => (
           <div key={i} className="flex items-center gap-1.5 text-[#202124]">
             <span className="text-xs">⚽</span>
             <span className="truncate">{formatEventString(g)}</span>
           </div>
         ))}
         
-        {hasYellows && team.yellows?.map((y, i) => (
+        {hasYellows && sortedYellows.map((y, i) => (
           <div key={i} className="flex items-center gap-1.5 text-[#202124]">
             <span className="inline-block w-2 h-3 bg-[#fabb05] rounded-[1px]" title="Carton jaune" />
             <span className="truncate">{formatEventString(y)}</span>
           </div>
         ))}
 
-        {hasReds && team.reds?.map((r, i) => (
+        {hasReds && sortedReds.map((r, i) => (
           <div key={i} className="flex items-center gap-1.5 text-[#202124]">
             <span className="inline-block w-2 h-3 bg-[#ea4335] rounded-[1px]" title="Carton rouge" />
             <span className="truncate">{formatEventString(r)}</span>

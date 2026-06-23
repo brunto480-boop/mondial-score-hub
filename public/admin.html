@@ -455,19 +455,29 @@
           </select>
 
           <select id="filter-group" onchange="filterAndRenderMatches()" class="bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-[#202124] focus:outline-none">
-            <option value="all">Tous les groupes</option>
-            <option value="A">Groupe A</option>
-            <option value="B">Groupe B</option>
-            <option value="C">Groupe C</option>
-            <option value="D">Groupe D</option>
-            <option value="E">Groupe E</option>
-            <option value="F">Groupe F</option>
-            <option value="G">Groupe G</option>
-            <option value="H">Groupe H</option>
-            <option value="I">Groupe I</option>
-            <option value="J">Groupe J</option>
-            <option value="K">Groupe K</option>
-            <option value="L">Groupe L</option>
+            <option value="all">Tous les groupes / phases</option>
+            <optgroup label="Phases de groupes">
+              <option value="A">Groupe A</option>
+              <option value="B">Groupe B</option>
+              <option value="C">Groupe C</option>
+              <option value="D">Groupe D</option>
+              <option value="E">Groupe E</option>
+              <option value="F">Groupe F</option>
+              <option value="G">Groupe G</option>
+              <option value="H">Groupe H</option>
+              <option value="I">Groupe I</option>
+              <option value="J">Groupe J</option>
+              <option value="K">Groupe K</option>
+              <option value="L">Groupe L</option>
+            </optgroup>
+            <optgroup label="Phases finales">
+              <option value="Seizièmes de finale">1/16 de finale</option>
+              <option value="Huitièmes de finale">1/8 de finale</option>
+              <option value="Quarts de finale">Quarts de finale</option>
+              <option value="Demi-finales">Demi-finales</option>
+              <option value="Match 3e place">Match 3e place</option>
+              <option value="Finale">Finale</option>
+            </optgroup>
           </select>
           
           <div class="text-xs text-[#5f6368] flex items-center ml-auto py-1">
@@ -2248,7 +2258,11 @@
       const effectiveMatches = matches.map(getEffectiveMatch);
       
       const filtered = effectiveMatches.filter((m) => {
-        if (filterGroup !== "all" && m.group !== `Groupe ${filterGroup}`) return false;
+        if (filterGroup !== "all") {
+          const isKnockout = ["Seizièmes de finale", "Huitièmes de finale", "Quarts de finale", "Demi-finales", "Match 3e place", "Finale"].includes(filterGroup);
+          const expectedGroup = isKnockout ? filterGroup : `Groupe ${filterGroup}`;
+          if (m.group !== expectedGroup) return false;
+        }
         if (filterDay !== "all" && m.day !== filterDay) return false;
         if (searchQuery) {
           const matchText = normalizeString(`${m.group} ${m.teamA.name} ${m.teamB.name}`);
