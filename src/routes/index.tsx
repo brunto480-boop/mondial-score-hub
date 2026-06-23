@@ -1654,42 +1654,67 @@ function formatEventString(eventStr: string): string {
   return str;
 }
 
+function getEventMinute(str: string): number {
+  const match = str.match(/\b(\d+)(?:\+(\d+))?'?(?:\s*\([^)]+\))?$/);
+  if (!match) return 999999; // Put events without minutes at the very end
+  const base = parseInt(match[1], 10);
+  const extra = match[2] ? parseInt(match[2], 10) : 0;
+  return base * 1000 + extra;
+}
+
+function compareEventsChronologically(a: string, b: string): number {
+  const minA = getEventMinute(a);
+  const minB = getEventMinute(b);
+  if (minA !== minB) {
+    return minA - minB;
+  }
+  return a.localeCompare(b, 'fr', { sensitivity: 'base' });
+}
+
 function renderEvents(team: Team, rightAlign = false) {
-  const sortedGoals = team.goals ? [...team.goals].sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' })) : [];
-  const sortedYellows = team.yellows ? [...team.yellows].sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' })) : [];
-  const sortedReds = team.reds ? [...team.reds].sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' })) : [];
+  interface EventItem {
+    type: 'goal' | 'yellow' | 'red';
+    text: string;
+  }
 
-  const hasGoals = sortedGoals.length > 0;
-  const hasYellows = sortedYellows.length > 0;
-  const hasReds = sortedReds.length > 0;
+  const events: EventItem[] = [];
+  if (team.goals) {
+    team.goals.forEach((g) => events.push({ type: 'goal', text: g }));
+  }
+  if (team.yellows) {
+    team.yellows.forEach((y) => events.push({ type: 'yellow', text: y }));
+  }
+  if (team.reds) {
+    team.reds.forEach((r) => events.push({ type: 'red', text: r }));
+  }
 
-  if (!hasGoals && !hasYellows && !hasReds) {
+  if (events.length === 0) {
     return <div className={`text-[10px] text-[#80868b] italic ${rightAlign ? "text-right" : "text-left"}`}>Aucun événement</div>;
   }
+
+  // Sort events chronologically by minute
+  events.sort((a, b) => compareEventsChronologically(a.text, b.text));
 
   return (
     <div className={rightAlign ? "flex flex-col items-end" : "text-left"}>
       <div className={`space-y-1.5 ${rightAlign ? "w-fit flex flex-col items-start" : ""}`}>
-        {hasGoals && sortedGoals.map((g, i) => (
-          <div key={i} className="flex items-center gap-1.5 text-[#202124]">
-            <span className="text-xs">⚽</span>
-            <span className="truncate">{formatEventString(g)}</span>
-          </div>
-        ))}
-        
-        {hasYellows && sortedYellows.map((y, i) => (
-          <div key={i} className="flex items-center gap-1.5 text-[#202124]">
-            <span className="inline-block w-2 h-3 bg-[#fabb05] rounded-[1px]" title="Carton jaune" />
-            <span className="truncate">{formatEventString(y)}</span>
-          </div>
-        ))}
+        {events.map((event, i) => {
+          let icon = null;
+          if (event.type === 'goal') {
+            icon = <span className="text-xs">⚽</span>;
+          } else if (event.type === 'yellow') {
+            icon = <span className="inline-block w-2 h-3 bg-[#fabb05] rounded-[1px]" title="Carton jaune" />;
+          } else if (event.type === 'red') {
+            icon = <span className="inline-block w-2 h-3 bg-[#ea4335] rounded-[1px]" title="Carton rouge" />;
+          }
 
-        {hasReds && sortedReds.map((r, i) => (
-          <div key={i} className="flex items-center gap-1.5 text-[#202124]">
-            <span className="inline-block w-2 h-3 bg-[#ea4335] rounded-[1px]" title="Carton rouge" />
-            <span className="truncate">{formatEventString(r)}</span>
-          </div>
-        ))}
+          return (
+            <div key={i} className="flex items-center gap-1.5 text-[#202124]">
+              {icon}
+              <span className="truncate">{formatEventString(event.text)}</span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
