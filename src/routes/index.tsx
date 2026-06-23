@@ -526,8 +526,26 @@ function Index() {
   const [activeKnockoutRound, setActiveKnockoutRound] = useState<"all" | "round_of_32" | "round_of_16" | "quarter_finals" | "semi_finals" | "final">("all");
   const [matches, setMatches] = useState<Match[]>([]);
   const [sortBy, setSortBy] = useState<"chrono_asc" | "chrono_desc" | "status_live_first">("chrono_asc");
-  const [activeFilter, setActiveFilter] = useState<"all" | "live" | "finished" | "scheduled" | "yesterday" | "today" | "tomorrow" | "later" | "past">("all");
+  type FilterType = "all" | "live" | "finished" | "scheduled" | "yesterday" | "today" | "tomorrow" | "later" | "past";
+  const [activeFilters, setActiveFilters] = useState<FilterType[]>(["all"]);
+
+  const toggleFilter = (filter: FilterType) => {
+    if (filter === "all") {
+      setActiveFilters(["all"]);
+    } else {
+      setActiveFilters((prev) => {
+        const newFilters = prev.filter((f) => f !== "all");
+        if (newFilters.includes(filter)) {
+          const updated = newFilters.filter((f) => f !== filter);
+          return updated.length === 0 ? ["all"] : updated;
+        } else {
+          return [...newFilters, filter];
+        }
+      });
+    }
+  };
   const [tick, setTick] = useState(0);
+
   const [mounted, setMounted] = useState(false);
   const hasScrolledOnLoad = useRef(false);
   const [livePopup, setLivePopup] = useState<{ teamA: string; teamB: string; id: string } | null>(null);
@@ -1115,17 +1133,21 @@ function Index() {
         }
       }
 
-      if (activeFilter !== "all") {
-        if (activeFilter === "live" && m.status !== "live") return false;
-        if (activeFilter === "finished" && m.status !== "finished") return false;
-        if (activeFilter === "scheduled" && m.status !== "scheduled") return false;
-
-        if (activeFilter === "yesterday" && m.day !== "yesterday") return false;
-        if (activeFilter === "today" && m.day !== "today") return false;
-        if (activeFilter === "tomorrow" && m.day !== "tomorrow") return false;
-        if (activeFilter === "later" && m.day !== "later") return false;
-        if (activeFilter === "past" && m.day !== "past" && m.day !== "yesterday") return false;
+      if (!activeFilters.includes("all") && activeFilters.length > 0) {
+        const matchesSomeFilter = activeFilters.some((filter) => {
+          if (filter === "live") return m.status === "live";
+          if (filter === "finished") return m.status === "finished";
+          if (filter === "scheduled") return m.status === "scheduled";
+          if (filter === "yesterday") return m.day === "yesterday";
+          if (filter === "today") return m.day === "today";
+          if (filter === "tomorrow") return m.day === "tomorrow";
+          if (filter === "later") return m.day === "later";
+          if (filter === "past") return m.day === "past" || m.day === "yesterday";
+          return false;
+        });
+        if (!matchesSomeFilter) return false;
       }
+
 
       if (!q) return true;
       const normGroup = normalizeString(m.group);
@@ -1193,13 +1215,13 @@ function Index() {
 
       return (a.id || "").localeCompare(b.id || "");
     });
-  }, [processedMatches, query, activeTab, activeGroup, activeKnockoutRound, sortBy, activeFilter, todayStr, yesterdayStr, tomorrowStr]);
+  }, [processedMatches, query, activeTab, activeGroup, activeKnockoutRound, sortBy, activeFilters, todayStr, yesterdayStr, tomorrowStr]);
 
   const handleTabChange = (tab: "all" | "group_stage" | "knockout_stage") => {
     setActiveTab(tab);
     setActiveGroup("all");
     setActiveKnockoutRound("all");
-    setActiveFilter("all");
+    setActiveFilters(["all"]);
   };
 
   const getKnockoutRoundTitle = (round: string) => {
@@ -1213,7 +1235,7 @@ function Index() {
     }
   };
 
-  const getFilterCount = (filterType: typeof activeFilter) => {
+  const getFilterCount = (filterType: FilterType) => {
     const q = normalizeString(query.trim());
     const tabFiltered = processedMatches.filter((m) => {
       if (activeTab === "group_stage") {
@@ -1317,15 +1339,15 @@ function Index() {
           </div>
 
           <div className="mt-3 flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none whitespace-nowrap border-t border-gray-50 pt-2.5">
-            <FilterChip label="Tous" active={activeFilter === "all"} onClick={() => setActiveFilter("all")} count={getFilterCount("all")} />
-            <FilterChip label="En cours" active={activeFilter === "live"} onClick={() => setActiveFilter("live")} count={getFilterCount("live")} isLive />
-            <FilterChip label="Terminés" active={activeFilter === "finished"} onClick={() => setActiveFilter("finished")} count={getFilterCount("finished")} />
-            <FilterChip label="Programmés" active={activeFilter === "scheduled"} onClick={() => setActiveFilter("scheduled")} count={getFilterCount("scheduled")} />
-            <FilterChip label="Passés" active={activeFilter === "past"} onClick={() => setActiveFilter("past")} count={getFilterCount("past")} />
-            <FilterChip label="Hier" active={activeFilter === "yesterday"} onClick={() => setActiveFilter("yesterday")} count={getFilterCount("yesterday")} />
-            <FilterChip label="Aujourd'hui" active={activeFilter === "today"} onClick={() => setActiveFilter("today")} count={getFilterCount("today")} />
-            <FilterChip label="Demain" active={activeFilter === "tomorrow"} onClick={() => setActiveFilter("tomorrow")} count={getFilterCount("tomorrow")} />
-            <FilterChip label="Plus tard" active={activeFilter === "later"} onClick={() => setActiveFilter("later")} count={getFilterCount("later")} />
+            <FilterChip label="Tous" active={activeFilters.includes("all")} onClick={() => toggleFilter("all")} count={getFilterCount("all")} />
+            <FilterChip label="En cours" active={activeFilters.includes("live")} onClick={() => toggleFilter("live")} count={getFilterCount("live")} isLive />
+            <FilterChip label="Terminés" active={activeFilters.includes("finished")} onClick={() => toggleFilter("finished")} count={getFilterCount("finished")} />
+            <FilterChip label="Programmés" active={activeFilters.includes("scheduled")} onClick={() => toggleFilter("scheduled")} count={getFilterCount("scheduled")} />
+            <FilterChip label="Passés" active={activeFilters.includes("past")} onClick={() => toggleFilter("past")} count={getFilterCount("past")} />
+            <FilterChip label="Hier" active={activeFilters.includes("yesterday")} onClick={() => toggleFilter("yesterday")} count={getFilterCount("yesterday")} />
+            <FilterChip label="Aujourd'hui" active={activeFilters.includes("today")} onClick={() => toggleFilter("today")} count={getFilterCount("today")} />
+            <FilterChip label="Demain" active={activeFilters.includes("tomorrow")} onClick={() => toggleFilter("tomorrow")} count={getFilterCount("tomorrow")} />
+            <FilterChip label="Plus tard" active={activeFilters.includes("later")} onClick={() => toggleFilter("later")} count={getFilterCount("later")} />
           </div>
 
           {activeTab === "group_stage" && (
