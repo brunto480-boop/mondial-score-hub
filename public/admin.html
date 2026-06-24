@@ -1266,11 +1266,8 @@
         showToast("❌ Le code drapeau de l'Équipe A est obligatoire.", "error");
         return;
       }
-      if (!/^[a-zA-Z]{2}$/.test(teamAFlag)) {
-        markFieldError("teamA-custom-flag");
-        showToast("❌ Le code drapeau de l'Équipe A doit faire exactement 2 lettres (ex: mx, fr).", "error");
-        return;
-      }
+      
+        
       
       if (!teamBName) {
         markFieldError("teamB-custom-name");
@@ -1283,12 +1280,6 @@
         showToast("❌ Le code drapeau de l'Équipe B est obligatoire.", "error");
         return;
       }
-      if (!/^[a-zA-Z]{2}$/.test(teamBFlag)) {
-        markFieldError("teamB-custom-flag");
-        showToast("❌ Le code drapeau de l'Équipe B doit faire exactement 2 lettres (ex: kr, fr).", "error");
-        return;
-      }
-      
       if (!dateVal) {
         markFieldError("match-date-input");
         showToast("❌ La date du match est obligatoire.", "error");
